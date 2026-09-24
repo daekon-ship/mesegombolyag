@@ -16,6 +16,7 @@ import { EventsPage } from "./pages/EventsPage";
 import { EventDetailPage } from "./pages/EventDetailPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { AdminBookingsPage } from "./pages/AdminBookingsPage";
 
 function HomePage() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/esemenyek/:slug" element={<EventDetailPage />} />
           <Route path="/admin" element={<AdminLoginPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/foglalasok" element={<AdminBookingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -1,9 +1,10 @@
 import { type ReactNode } from "react";
 import { BellRing, CalendarRange, CheckCircle2, LogOut, Users, Wand2 } from "lucide-react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, NavLink, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
 
 export function AdminDashboardPage() {
+  const navigate = useNavigate();
   const { isAdmin, logoutAdmin, bookings, groups, events, eventRegistrations, groupRegistrations, getUpcomingBookings, getUpcomingEvents, getUpcomingGroups } = useAppContext();
 
   if (!isAdmin) {
@@ -16,16 +17,35 @@ export function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="border-b border-forest/10 bg-paper/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
-          <div>
-            <p className="font-sans text-xs uppercase tracking-[0.25em] text-terracotta">Mesegombolyag admin</p>
-            <Link to="/" className="font-serif text-2xl text-forest">Mesegombolyag</Link>
+      <header className="sticky top-0 z-30 border-b border-forest/10 bg-paper/85 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-5 py-4 sm:px-8 lg:px-12">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-forest text-sm font-semibold tracking-[0.18em] text-paper shadow-[0_12px_30px_rgba(32,58,50,0.18)]">
+                M
+              </div>
+              <div>
+                <p className="font-sans text-[10px] uppercase tracking-[0.26em] text-terracotta">Mesegombolyag admin</p>
+                <Link to="/" className="font-serif text-2xl leading-none text-forest">Mesegombolyag</Link>
+              </div>
+            </div>
+
+            <nav className="flex flex-wrap items-center gap-2">
+              <NavLink to="/admin/dashboard" className={({ isActive }) => `inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${isActive ? "bg-forest text-paper shadow-[0_10px_20px_rgba(32,58,50,0.12)]" : "border border-forest/15 bg-white/60 text-forest hover:bg-forest/5"}`}>
+                Dashboard
+              </NavLink>
+              <NavLink to="/admin/foglalasok" className={({ isActive }) => `inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${isActive ? "bg-forest text-paper shadow-[0_10px_20px_rgba(32,58,50,0.12)]" : "border border-forest/15 bg-white/60 text-forest hover:bg-forest/5"}`}>
+                Foglalások
+              </NavLink>
+              <NavLink to="/" className={({ isActive }) => `inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${isActive ? "bg-forest text-paper shadow-[0_10px_20px_rgba(32,58,50,0.12)]" : "border border-forest/15 bg-white/60 text-forest hover:bg-forest/5"}`}>
+                Főoldal
+              </NavLink>
+              <button type="button" onClick={() => { logoutAdmin(); navigate("/admin", { replace: true }); }} className="inline-flex items-center gap-2 rounded-full border border-forest/15 bg-paper px-4 py-2 text-sm font-semibold text-forest transition hover:border-forest/30 hover:bg-forest/5">
+                <LogOut className="h-4 w-4" />
+                Kijelentkezés
+              </button>
+            </nav>
           </div>
-          <button onClick={logoutAdmin} className="inline-flex items-center gap-2 rounded-full border border-forest/20 px-4 py-2 text-sm font-medium text-forest hover:bg-forest/5">
-            <LogOut className="h-4 w-4" />
-            Kijelentkezés
-          </button>
         </div>
       </header>
 
@@ -102,10 +122,10 @@ export function AdminDashboardPage() {
         <section className="rounded-[28px] border border-forest/10 bg-white/60 p-6">
           <h3 className="font-serif text-2xl text-forest">Gyors műveletek</h3>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <QuickAction title="Új foglalás" subtitle="Időpontok és admin ellenőrzés" />
-            <QuickAction title="Csoport létrehozása" subtitle="Létszám és jelentkezők kezelése" />
-            <QuickAction title="Esemény publikálása" subtitle="Weboldal és hirdetés" />
-            <QuickAction title="Oldal szerkesztése" subtitle="Hero, szövegek és CTA-k" />
+            <QuickAction href="/foglalas" title="Új foglalás" subtitle="Időpontok és admin ellenőrzés" />
+            <QuickAction href="/esemenyek" title="Csoportok & események" subtitle="Létszám és jelentkezők kezelése" />
+            <QuickAction href="/admin/foglalasok" title="Jelentkezések kezelése" subtitle="Weboldal és hirdetés" />
+            <QuickAction href="/" title="Vissza a főoldalra" subtitle="Hero, szövegek és CTA-k" />
           </div>
         </section>
       </main>
@@ -134,12 +154,12 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function QuickAction({ title, subtitle }: { title: string; subtitle: string }) {
+function QuickAction({ title, subtitle, href }: { title: string; subtitle: string; href: string }) {
   return (
-    <div className="rounded-2xl border border-forest/10 bg-paper p-4">
+    <Link to={href} className="block rounded-2xl border border-forest/10 bg-paper p-4 transition hover:-translate-y-0.5 hover:border-forest/20 hover:bg-paper/80">
       <div className="mb-3 inline-flex rounded-full bg-forest/8 p-2 text-forest"><CheckCircle2 className="h-4 w-4" /></div>
       <p className="font-semibold text-forest">{title}</p>
       <p className="mt-2 text-sm text-ink/70">{subtitle}</p>
-    </div>
+    </Link>
   );
 }

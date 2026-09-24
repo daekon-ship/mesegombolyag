@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
+import { CalendarCheck2, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 import { BranchMotif } from "./motifs/BranchMotif";
 import { fadeUp } from "../lib/motion";
 
@@ -32,14 +33,26 @@ export function ContactCTA() {
           Ha megszólított a Mesegombolyag világa, írj Johannának, és induljon
           el egy személyes beszélgetéssel.
         </motion.p>
-        <motion.a
+        <motion.div
           {...fadeUp(0.3, 16)}
-          href="mailto:mesegombolyag@gmail.com"
-          className="focus-ring mt-10 inline-flex items-center gap-2.5 rounded-full bg-terracotta px-8 py-4 font-sans text-[15px] font-semibold text-paper transition-colors hover:bg-ochre hover:text-ink"
+          className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <Mail className="h-[18px] w-[18px]" />
-          Írok Johannának
-        </motion.a>
+          <a
+            href="mailto:mesegombolyag@gmail.com"
+            className="focus-ring inline-flex items-center gap-2.5 rounded-full bg-terracotta px-8 py-4 font-sans text-[15px] font-semibold text-paper transition-colors hover:bg-ochre hover:text-ink"
+          >
+            <Mail className="h-[18px] w-[18px]" />
+            Írok Johannának
+          </a>
+
+          <Link
+            to="/foglalas"
+            className="focus-ring inline-flex items-center gap-2.5 rounded-full border border-paper/30 bg-paper/5 px-8 py-4 font-sans text-[15px] font-semibold text-paper transition-colors hover:bg-paper hover:text-forest"
+          >
+            <CalendarCheck2 className="h-[18px] w-[18px]" />
+            Foglalás
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

@@ -37,7 +37,7 @@ export function Process() {
             Egy általános, biztonságos keret — a részletek közösen alakulnak
           </h2>
           <p className="mx-auto mt-4 max-w-md font-sans text-sm italic text-ink/55">
-            TODO: a végleges folyamat ügyféllel pontosítandó.
+            A folyamat személyre szabott, de mindig a biztonságos, nyugodt tempó köré épül.
           </p>
         </div>
 

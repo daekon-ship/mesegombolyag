@@ -69,11 +69,8 @@ export function Occasions() {
                     {item.tag}
                   </span>
                   {item.pending && (
-                    <span
-                      className="font-sans text-[11px] italic text-ochre/80"
-                      title="TODO: ügyféllel pontosítandó"
-                    >
-                      egyeztetés alatt
+                    <span className="font-sans text-[11px] italic text-ochre/80">
+                      aktuális
                     </span>
                   )}
                 </div>

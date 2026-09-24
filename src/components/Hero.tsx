@@ -90,7 +90,8 @@ export function Hero() {
             <img
               src={johannaPortrait}
               alt="Tóth Johanna meseterapeuta mosolyogva, egy meseterápiás alkalom hangulatában"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-center"
+              style={{ objectPosition: "50% 18%" }}
               loading="eager"
             />
           </div>

@@ -40,12 +40,8 @@ export function Footer() {
         <div className="flex flex-col gap-4 pt-6 font-sans text-xs text-paper/45 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Mesegombolyag — Tóth Johanna</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <span className="italic" title="TODO: ügyféllel pontosítandó">
-              Adatkezelési tájékoztató — hamarosan
-            </span>
-            <span className="italic" title="TODO: ügyféllel pontosítandó">
-              Impresszum — hamarosan
-            </span>
+            <span className="italic">Adatkezelési tájékoztató</span>
+            <span className="italic">Impresszum</span>
           </div>
         </div>
       </div>

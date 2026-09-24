@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
+import { CalendarDays, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
 
@@ -70,7 +70,7 @@ export function EventsPage() {
                     <div className="mt-4 space-y-2 text-sm text-ink/70">
                       <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-terracotta" /> {event.date} · {event.startTime}</div>
                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-terracotta" /> {event.location}</div>
-                      <div className="flex items-center gap-2"><Ticket className="h-4 w-4 text-terracotta" /> {event.price ? `${event.price.toLocaleString("hu-HU")} Ft` : "Ingyenes"}</div>
+                      <div className="flex items-center gap-2"><Users className="h-4 w-4 text-terracotta" /> Jelentkezés</div>
                     </div>
                     <Link to={`/esemenyek/${event.slug}`} className="mt-5 inline-flex rounded-full bg-forest px-5 py-2.5 font-sans text-sm font-semibold text-paper hover:bg-terracotta">
                       Részletek és jelentkezés

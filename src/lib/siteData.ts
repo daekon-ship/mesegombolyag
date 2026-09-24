@@ -60,6 +60,8 @@ export type RegistrationBase = {
   name: string;
   email: string;
   phone: string;
+  preferredDate?: string;
+  preferredTime?: string;
   notes?: string;
   createdAt: string;
 };
@@ -236,6 +238,8 @@ export const groupRegistrations: GroupRegistration[] = [
     name: "Mészáros Dóra",
     email: "dora@example.com",
     phone: "+36 20 999 1244",
+    preferredDate: "2026-09-30",
+    preferredTime: "17:00",
     notes: "A program szüleivel szeretne eljönni.",
     status: "approved",
     createdAt: "2026-09-16T12:40:00.000Z",
@@ -249,6 +253,8 @@ export const eventRegistrations: EventRegistration[] = [
     name: "Farkas Márta",
     email: "marta@example.com",
     phone: "+36 20 777 9077",
+    preferredDate: "2026-10-08",
+    preferredTime: "18:00",
     guests: 2,
     notes: "Két főre jelentkezünk.",
     createdAt: "2026-09-20T09:00:00.000Z",
@@ -256,6 +262,7 @@ export const eventRegistrations: EventRegistration[] = [
 ];
 
 export const adminCredentials = {
+  username: import.meta.env.VITE_ADMIN_USERNAME || "mesegombolyag",
   email: import.meta.env.VITE_ADMIN_EMAIL || "admin@mesegombolyag.hu",
   password: import.meta.env.VITE_ADMIN_PASSWORD || "mesegombolyag-demo",
 };

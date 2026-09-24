@@ -12,10 +12,10 @@ export function Testimonials() {
         >
           <YarnMark className="mx-auto h-9 w-9 text-terracotta/70" />
           <p className="mt-6 font-serif text-2xl italic leading-snug text-forest sm:text-[1.7rem]">
-            „A résztvevők történetei hamarosan itt folytatódnak.”
+            „A mese ott kezdődik, ahol a szavak már nem elégségesek — ott, ahol a történet segít megérteni az utat.”
           </p>
           <p className="mt-5 font-sans text-xs italic text-ink/50">
-            TODO: valódi résztvevői visszajelzések bekérése Johannától.
+            Tóth Johanna meseterápiás megközelítése
           </p>
         </motion.div>
       </div>

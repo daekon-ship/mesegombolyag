@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { CalendarDays, CheckCircle2, MapPin, Ticket, Users } from "lucide-react";
+import { CalendarDays, CheckCircle2, MapPin, Users } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
 
@@ -19,11 +19,16 @@ export function EventDetailPage() {
   const isGroupFlow = Boolean(group) && !event;
   const activeItem = event ?? group;
 
+  const defaultPreferredDate = event?.date ?? group?.date ?? "";
+  const defaultPreferredTime = isGroupFlow ? (group?.time ?? "") : (event?.startTime ?? "");
+
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
+    preferredDate: defaultPreferredDate,
+    preferredTime: defaultPreferredTime,
     guests: 1,
     notes: "",
   });
@@ -56,12 +61,22 @@ export function EventDetailPage() {
         name: form.name,
         email: form.email,
         phone: form.phone,
+        preferredDate: form.preferredDate || group!.date,
+        preferredTime: form.preferredTime || group!.time,
         notes: form.notes || undefined,
       });
 
       setStatus({ ok: result.ok, message: result.message });
       if (result.ok) {
-        setForm({ name: "", email: "", phone: "", guests: 1, notes: "" });
+        setForm({
+          name: "",
+          email: "",
+          phone: "",
+          preferredDate: group!.date,
+          preferredTime: group!.time,
+          guests: 1,
+          notes: "",
+        });
       }
       return;
     }
@@ -71,6 +86,8 @@ export function EventDetailPage() {
       name: form.name,
       email: form.email,
       phone: form.phone,
+      preferredDate: form.preferredDate || event!.date,
+      preferredTime: form.preferredTime || event!.startTime,
       guests: form.guests,
       notes: form.notes || undefined,
     });
@@ -78,7 +95,15 @@ export function EventDetailPage() {
     setStatus({ ok: result.ok, message: result.message });
 
     if (result.ok) {
-      setForm({ name: "", email: "", phone: "", guests: 1, notes: "" });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        preferredDate: event!.date,
+        preferredTime: event!.startTime,
+        guests: 1,
+        notes: "",
+      });
     }
   };
 
@@ -102,7 +127,7 @@ export function EventDetailPage() {
           <div className="p-6 sm:p-8">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-forest px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-paper">{itemStatus}</span>
-              <span className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta">{activeItem.price ? `${activeItem.price.toLocaleString("hu-HU")} Ft` : "Ingyenes"}</span>
+              <span className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta">Jelentkezés</span>
             </div>
 
             <h1 className="mt-5 font-serif text-4xl text-forest">{activeItem.title}</h1>
@@ -121,8 +146,8 @@ export function EventDetailPage() {
             <p className="text-xs uppercase tracking-[0.25em] text-ochre">Jelentkezés</p>
             <h2 className="mt-4 font-serif text-3xl">{isGroupFlow ? "Jelentkezz a csoportos programra" : "Jelentkezz az eseményre"}</h2>
             <div className="mt-5 space-y-3 text-sm text-paper/80">
-              <div className="flex items-center gap-3"><Ticket className="h-4 w-4" /> {activeItem.price ? `${activeItem.price.toLocaleString("hu-HU")} Ft` : "Ingyenes"}</div>
               <div className="flex items-center gap-3"><Users className="h-4 w-4" /> {remainingSpots} szabad hely</div>
+              <div className="flex items-center gap-3"><CalendarDays className="h-4 w-4" /> {activeItem.date} · {isGroupFlow ? (group?.time ?? "") : (event?.startTime ?? "")}</div>
             </div>
           </div>
 
@@ -140,6 +165,31 @@ export function EventDetailPage() {
                 <span className="font-medium text-forest">Telefonszám</span>
                 <input value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} className="w-full rounded-2xl border border-forest/15 bg-paper px-4 py-3 text-base" required />
               </label>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="block space-y-2">
+                  <span className="font-medium text-forest">Preferált dátum</span>
+                  <input
+                    type="date"
+                    value={form.preferredDate}
+                    onChange={(event) => setForm((prev) => ({ ...prev, preferredDate: event.target.value }))}
+                    className="w-full rounded-2xl border border-forest/15 bg-paper px-4 py-3 text-base"
+                    min={activeItem.date}
+                    required
+                  />
+                </label>
+
+                <label className="block space-y-2">
+                  <span className="font-medium text-forest">Preferált idő</span>
+                  <input
+                    type="time"
+                    value={form.preferredTime}
+                    onChange={(event) => setForm((prev) => ({ ...prev, preferredTime: event.target.value }))}
+                    className="w-full rounded-2xl border border-forest/15 bg-paper px-4 py-3 text-base"
+                    required
+                  />
+                </label>
+              </div>
 
               {!isGroupFlow && (
                 <label className="block space-y-2">
