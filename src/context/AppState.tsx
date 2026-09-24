@@ -2,6 +2,7 @@ import {
   createContext,
   type ReactNode,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -86,14 +87,65 @@ type AppStateValue = {
   getEventRegistrationCount: (eventId: string) => number;
 };
 
+const STORAGE_KEYS = {
+  bookings: "mesegombolyag.bookings",
+  groupRegistrations: "mesegombolyag.groupRegistrations",
+  eventRegistrations: "mesegombolyag.eventRegistrations",
+  siteContent: "mesegombolyag.siteContent",
+  isAdmin: "mesegombolyag.isAdmin",
+};
+
+function readStorageValue<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (raw === null) {
+      return fallback;
+    }
+
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 const AppStateContext = createContext<AppStateValue | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
-  const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>(initialGroupRegistrations);
-  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>(initialEventRegistrations);
-  const [siteContent, setSiteContent] = useState<SiteContent>(initialSiteContent);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [bookings, setBookings] = useState<BookingRecord[]>(() => readStorageValue(STORAGE_KEYS.bookings, initialBookings));
+  const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>(() => readStorageValue(STORAGE_KEYS.groupRegistrations, initialGroupRegistrations));
+  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>(() => readStorageValue(STORAGE_KEYS.eventRegistrations, initialEventRegistrations));
+  const [siteContent, setSiteContent] = useState<SiteContent>(() => readStorageValue(STORAGE_KEYS.siteContent, initialSiteContent));
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.localStorage.getItem(STORAGE_KEYS.isAdmin) === "true";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
+  }, [bookings]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.groupRegistrations, JSON.stringify(groupRegistrations));
+  }, [groupRegistrations]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.eventRegistrations, JSON.stringify(eventRegistrations));
+  }, [eventRegistrations]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.siteContent, JSON.stringify(siteContent));
+  }, [siteContent]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.isAdmin, JSON.stringify(isAdmin));
+  }, [isAdmin]);
 
   const loginAdmin = (usernameOrEmail: string, password: string) => {
     const normalizedUser = usernameOrEmail.trim().toLowerCase();
@@ -101,11 +153,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (normalizedUser === adminCredentials.username.toLowerCase() || normalizedUser === adminCredentials.email.toLowerCase()) &&
       password === adminCredentials.password;
 
-    setIsAdmin(true);
-    return ok || normalizedUser.length > 0;
+    setIsAdmin(ok);
+    return ok;
   };
 
-  const logoutAdmin = () => setIsAdmin(true);
+  const logoutAdmin = () => setIsAdmin(false);
 
   const openReplyEmail = (recipient: string, subject: string, body: string) => {
     if (typeof window === "undefined" || !recipient) {
