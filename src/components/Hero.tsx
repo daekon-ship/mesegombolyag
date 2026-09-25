@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Mail } from "lucide-react";
 import { HeroThread } from "./motifs/HeroThread";
-import johannaPortrait from "../assets/photos/johanna-portrait-fixed.jpg";
+import heroPortrait from "../assets/photos/hero-portrait.jpg";
 import { softEase } from "../lib/motion";
 
 const fadeUp = {
@@ -17,8 +17,8 @@ export function Hero() {
     >
       <HeroThread className="pointer-events-none absolute inset-y-0 left-0 hidden h-full w-[420px] opacity-80 lg:block" />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-5 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:px-12">
-        <div className="relative z-10 max-w-xl lg:max-w-none">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-5 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:justify-items-center lg:gap-8 lg:px-12">
+        <div className="relative z-10 max-w-xl lg:max-w-none lg:justify-self-start">
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.7, delay: 0.05, ease: softEase }}
@@ -40,7 +40,7 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.28, ease: softEase }}
             className="mt-6 font-script text-2xl text-mauve sm:text-[1.7rem]"
           >
-            Meseterápiával a lelki immunrendszerért.
+            A mese és a személyes figyelem helye.
           </motion.p>
 
           <motion.p
@@ -48,9 +48,8 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.38, ease: softEase }}
             className="mt-6 max-w-md font-sans text-[17px] leading-relaxed text-ink/80"
           >
-            Egyéni folyamatok és személyes workshopok Szegeden, ahol a
-            népmesék, a kreativitás és a közös figyelem segítenek közelebb
-            kerülni belső erőforrásainkhoz.
+            A mese és a személyes figyelem helye: itt a nyugalom, a
+            kreativitás és a bizalom adhat új irányt a nehéz pillanatokhoz.
           </motion.p>
 
           <motion.div
@@ -79,19 +78,25 @@ export function Hero() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: softEase }}
-          className="relative mx-auto w-full max-w-[420px] lg:max-w-none"
+          className="relative mx-auto flex w-full items-center justify-center px-0 sm:max-w-[420px] lg:max-w-[480px] lg:justify-self-center"
         >
           <div
-            className="relative mx-auto aspect-[3/4] w-full max-w-[380px] overflow-hidden bg-sage lg:mr-0 lg:ml-auto lg:max-w-[500px]"
+            className="relative mx-auto aspect-[3/4] w-full max-w-[360px] overflow-hidden bg-sage shadow-[0_18px_48px_rgba(32,58,50,0.12)] ring-1 ring-forest/10 sm:w-[92%] sm:max-w-[360px] lg:w-[86%] lg:max-w-[420px]"
             style={{
               borderRadius: "58% 42% 47% 53% / 55% 48% 52% 45%",
+              margin: 0,
+              padding: 0,
+              transform: "translateX(0)",
             }}
           >
             <img
-              src={johannaPortrait}
-              alt="Tóth Johanna meseterapeuta mosolyogva, egy meseterápiás alkalom hangulatában"
-              className="h-full w-full object-cover object-center"
-              style={{ objectPosition: "50% 18%" }}
+              src={heroPortrait}
+              alt="Tóth Johanna mosolyogva a természetes fényben"
+              className="h-full w-full object-cover"
+              style={{
+                objectPosition: "62% 22%",
+                transform: "translateX(3%) scale(1.03)",
+              }}
               loading="eager"
             />
           </div>

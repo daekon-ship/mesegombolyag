@@ -74,7 +74,12 @@ export type GroupRegistration = RegistrationBase & {
 export type EventRegistration = RegistrationBase & {
   eventId: string;
   guests: number;
+  status?: "pending" | "approved" | "cancelled";
 };
+
+import heroPortrait from "../assets/photos/hero-portrait.jpg";
+import ritualFloralArrangement from "../assets/photos/ritual-floral-arrangement.jpg";
+import groupEveningCircle from "../assets/photos/group-evening-circle.jpg";
 
 export type SiteContent = {
   heroTitle: string;
@@ -89,106 +94,79 @@ export type SiteContent = {
 
 export const siteContent: SiteContent = {
   heroTitle: "A történetek néha ott találnak meg, ahol a szavaink elfogynak.",
-  heroSubtitle: "Meseterápiával a lelki immunrendszerért.",
+  heroSubtitle: "A mese és a személyes figyelem helye.",
   heroDescription:
-    "Egyéni folyamatok és személyes workshopok Szegeden, ahol a népmesék, a kreativitás és a közös figyelem segítenek közelebb kerülni belső erőforrásainkhoz.",
+    "A mese és a személyes figyelem helye: itt a nyugalom, a kreativitás és a bizalom adhat új irányt a nehéz pillanatokhoz.",
   introTitle: "Minden élethelyzetnek megvan a maga története.",
   introText:
-    "A népmesék szimbólumai és megküzdési mintái évszázados tudást hordoznak. Segítségükkel más nézőpontból tekinthetünk saját élethelyzeteinkre.",
-  contactEmail: "hello@mesegombolyag.hu",
-  contactPhone: "+36 20 123 4567",
-  location: "Szeged",
+    "A történetek nemcsak emlékek, hanem útmutatók is. Ilyen módon a mese segíthet új nézőpontból látni a nehéz helyzeteket, és több nyugalommal, figyelemmel és önbizalommal lépni tovább.",
+  contactEmail: "mesegombolyag@gmail.com",
+  contactPhone: "",
+  location: "",
 };
 
 export const services: Service[] = [
   {
-    id: "meseterapia",
-    name: "Meseterápia egyéni alkalom",
+    id: "individual-session",
+    name: "Személyes mesealapú beszélgetés",
     duration: 60,
-    description: "Személyre szabott, nyugodt és bizalmas beszélgetés és meseélmény.",
+    description: "Bizalommal teli, személyre szabott beszélgetés, ahol a mese és a megküzdési minták segítenek új nézőpontot találni.",
+    price: 24000,
+    active: true,
+  },
+  {
+    id: "mother-child-story",
+    name: "Anyák és gyermekek közös meseidő",
+    duration: 45,
+    description: "Közös, nyugodt alkalom, ahol a játék, a figyelem és a történet összekapcsolja a családi ritmust.",
     price: 18000,
     active: true,
   },
   {
-    id: "csalad", 
-    name: "Családi mesealkalom",
+    id: "group-circle",
+    name: "Csoportos mese- és alkotó kör",
     duration: 90,
-    description: "Közös, támogató és érzékeny légkörű családi program.",
-    price: 22000,
-    active: true,
-  },
-  {
-    id: "workshop",
-    name: "Személyes workshop",
-    duration: 120,
-    description: "Kreatív, önismereti és megküzdési workshop kis csoportban.",
-    price: 26000,
+    description: "Közösségi alkalom, ahol a történet, a képzelet és a közös alkotás új lendületet ad a megküzdéshez.",
+    price: 8500,
     active: true,
   },
 ];
 
-export const availability = [
-  { date: "2026-09-25", slots: ["09:00", "10:30", "12:00", "15:00"] },
-  { date: "2026-09-27", slots: ["09:30", "11:00", "13:30", "16:00"] },
-  { date: "2026-09-29", slots: ["10:00", "12:30", "14:00", "17:00"] },
-  { date: "2026-10-02", slots: ["08:30", "10:00", "13:00", "15:30"] },
-  { date: "2026-10-06", slots: ["09:00", "11:00", "14:00", "16:30"] },
+export const availability: { date: string; slots: string[] }[] = [
+  { date: "2026-10-04", slots: ["10:00", "11:30", "14:00"] },
+  { date: "2026-10-11", slots: ["09:30", "11:00", "15:00"] },
+  { date: "2026-10-18", slots: ["10:30", "12:00", "17:30"] },
+  { date: "2026-10-25", slots: ["11:00", "13:00", "18:30"] },
 ];
 
-export const bookings: BookingRecord[] = [
-  {
-    id: "bk-1001",
-    serviceId: "meseterapia",
-    date: "2026-09-25",
-    slot: "10:30",
-    name: "Nagy Anna",
-    email: "anna@example.com",
-    phone: "+36 20 555 1111",
-    childName: "Luca",
-    notes: "Első alkalom, nyugodt hangulatot keresünk.",
-    status: "confirmed",
-    createdAt: "2026-09-18T14:20:00.000Z",
-  },
-  {
-    id: "bk-1002",
-    serviceId: "workshop",
-    date: "2026-09-29",
-    slot: "14:00",
-    name: "Kovács Péter",
-    email: "peter@example.com",
-    phone: "+36 30 123 4567",
-    notes: "Kis csoportos workshopra jelentkezett.",
-    status: "pending",
-    createdAt: "2026-09-19T09:40:00.000Z",
-  },
-];
+export const bookings: BookingRecord[] = [];
 
 export const groups: GroupProgram[] = [
   {
-    id: "g-1",
-    title: "A mese és a bátorság",
-    description: "Egyéni és csoportos, bátorság-erősítő mesejátékok.",
-    image: "https://images.unsplash.com/photo-1517486808906-6ca8b3a04846?auto=format&fit=crop&w=1200&q=80",
-    date: "2026-09-30",
-    time: "17:00",
-    location: "Szeged, Központi műhely",
-    capacity: 12,
-    ageMin: 6,
-    ageMax: 12,
-    price: 6000,
+    id: "mese-kor-szulesi",
+    title: "Kis mese- és játék kör",
+    description: "Nyugodt, szeretetteljes közösségi alkalom kisgyermekes és szülői részvétellel, ahol a történet és a játék segít megnyugodni.",
+    image: groupEveningCircle,
+    date: "2026-10-11",
+    time: "10:00-11:30",
+    location: "Mesegombolyag műhely",
+    capacity: 8,
+    ageMin: 4,
+    ageMax: 8,
+    price: 6500,
     active: true,
   },
   {
-    id: "g-2",
-    title: "Belső gyermek foglalkozás",
-    description: "Nyitott, megnyugtató műhely, ahol a mese és a kreativitás találkozik.",
-    image: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1200&q=80",
-    date: "2026-10-05",
-    time: "16:30",
-    location: "Szeged, József Attila utca 12.",
-    capacity: 10,
-    ageMin: 10,
-    ageMax: 16,
+    id: "felnott-mese-kor",
+    title: "Felnőtt mese- és visszatekintő kör",
+    description: "A történetekben rejlő szimbólumok és minták segítségével nyugodt, mélyebb beszélgetésben tudunk a nehéz pillanatokra is ránézni.",
+    image: ritualFloralArrangement,
+    date: "2026-10-18",
+    time: "18:30-20:00",
+    location: "Kerti udvar",
+    capacity: 12,
+    ageMin: 18,
+    ageMax: 99,
     price: 7000,
     active: true,
   },
@@ -196,76 +174,41 @@ export const groups: GroupProgram[] = [
 
 export const events: EventRecord[] = [
   {
-    id: "ev-1",
-    slug: "meses-csoport-szeptember",
-    title: "Mesés csoportos alkalom – szeptember",
-    shortDescription: "Közös mesélés, játék és belső erőforrások felfedezése.",
-    description:
-      "Egy nyugodt, gondoskodó környezetben játsszunk, meséljünk és figyeljünk egymásra. A foglalkozás célja, hogy a résztvevők jobban érezzék a közös figyelem és a mese megnyugtató erejét.",
-    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=1200&q=80",
-    date: "2026-10-08",
-    startTime: "18:00",
-    endTime: "19:30",
-    location: "Szeged, Meseház",
-    price: 5500,
+    id: "kerti-meseeste",
+    slug: "kerti-meseeste",
+    title: "Kerti meseeste",
+    shortDescription: "Egy nyugodt, közösségi est, ahol a mese és a természet együtt ad egy gyógyító hangulatú alkalmat.",
+    description: "A kerti meseeste egy olyan est, ahol a népmesék nyugtató ritmusa, a természet hangjai és a közös figyelem együtt teremtenek biztonságos, szép pillanatokat.",
+    image: ritualFloralArrangement,
+    date: "2026-10-25",
+    startTime: "18:30",
+    endTime: "20:00",
+    location: "Kerti udvar",
+    price: 4500,
     capacity: 20,
     status: "published",
-    registrationDeadline: "2026-10-05T18:00:00.000Z",
+    registrationDeadline: "2026-10-20",
   },
   {
-    id: "ev-2",
-    slug: "egeszseges-fokozatos-ujrakezdes",
-    title: "Egészséges, fokozatos újrakezdés",
-    shortDescription: "A változás nem mindig robbanás; sokszor a lassú, történetközeli lépcsőfokok vezetik előre.",
-    description:
-      "Ez a program különösen azoknak szól, akik új irányba szeretnének lépni, de szeretnék, hogy a változás ne legyen túlterhelő. A mese és a közös reflexió segít megérteni a lépés lépésről való szépségét.",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",
-    date: "2026-10-15",
-    startTime: "17:30",
-    endTime: "19:00",
-    location: "Szeged, Tiszti Közösségi Ház",
-    price: 6500,
-    capacity: 15,
+    id: "dolgozati-folymat",
+    slug: "dolgozati-folyamat",
+    title: "Személyes úton járó folyamat",
+    shortDescription: "Kiküszöbölve a sietést: egy személyre szabott megküzdési és nyugvó folyamat kezdete.",
+    description: "Ez az alkalom a megelőző beszélgetésre, a saját történet feltérképezésére és egy nyugodt, személyre szabott útra épül.",
+    image: heroPortrait,
+    date: "2026-11-02",
+    startTime: "15:30",
+    endTime: "17:00",
+    location: "Mesegombolyag stúdió",
+    price: 32000,
+    capacity: 6,
     status: "published",
-    registrationDeadline: "2026-10-12T20:00:00.000Z",
+    registrationDeadline: "2026-10-27",
   },
 ];
 
-export const groupRegistrations: GroupRegistration[] = [
-  {
-    id: "gr-1",
-    groupId: "g-1",
-    name: "Mészáros Dóra",
-    email: "dora@example.com",
-    phone: "+36 20 999 1244",
-    preferredDate: "2026-09-30",
-    preferredTime: "17:00",
-    notes: "A program szüleivel szeretne eljönni.",
-    status: "approved",
-    createdAt: "2026-09-16T12:40:00.000Z",
-  },
-];
-
-export const eventRegistrations: EventRegistration[] = [
-  {
-    id: "er-1",
-    eventId: "ev-1",
-    name: "Farkas Márta",
-    email: "marta@example.com",
-    phone: "+36 20 777 9077",
-    preferredDate: "2026-10-08",
-    preferredTime: "18:00",
-    guests: 2,
-    notes: "Két főre jelentkezünk.",
-    createdAt: "2026-09-20T09:00:00.000Z",
-  },
-];
-
-export const adminCredentials = {
-  username: import.meta.env.VITE_ADMIN_USERNAME || "mesegombolyag",
-  email: import.meta.env.VITE_ADMIN_EMAIL || "admin@mesegombolyag.hu",
-  password: import.meta.env.VITE_ADMIN_PASSWORD || "mesegombolyag-demo",
-};
+export const groupRegistrations: GroupRegistration[] = [];
+export const eventRegistrations: EventRegistration[] = [];
 
 export function getAvailableSlots(date: string, serviceId: string): string[] {
   const day = availability.find((entry) => entry.date === date);

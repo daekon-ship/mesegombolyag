@@ -1,14 +1,6 @@
 import { motion } from "framer-motion";
-import { MapPin } from "lucide-react";
-import workshopCircle from "../assets/photos/workshop-circle.jpg";
+import workshopCircleNew from "../assets/photos/workshop-circle-new.jpg";
 import { fadeUp } from "../lib/motion";
-
-const CREDENTIALS = [
-  "Mentálhigiénés szakember",
-  "Meseterapeuta",
-  "Szociológus",
-  "Szociálpedagógus",
-];
 
 export function About() {
   return (
@@ -23,15 +15,11 @@ export function About() {
             style={{ borderRadius: "18% 82% 30% 70% / 62% 24% 76% 38%" }}
           >
             <img
-              src={workshopCircle}
+              src={workshopCircleNew}
               alt="Johanna esti meseműhely körben ülő hallgatósággal, gyertyafényes udvarban"
               className="h-full w-full object-cover"
               loading="lazy"
             />
-          </div>
-          <div className="absolute -bottom-6 -left-5 flex items-center gap-2 rounded-full bg-forest px-4 py-2.5 text-paper shadow-lg sm:-left-8">
-            <MapPin className="h-4 w-4 text-ochre" />
-            <span className="font-sans text-sm font-medium">Szeged</span>
           </div>
         </motion.div>
 
@@ -50,35 +38,18 @@ export function About() {
             {...fadeUp(0.12, 14)}
             className="mt-6 font-script text-xl text-mauve sm:text-2xl"
           >
-            „Munkámban az egyéni figyelem, a közösség megtartó ereje és a
-            történetekben rejlő évszázados tudás találkozik.”
+            „A mesékben mindig ott van a nyugalom, a kreativitás és a
+            bizalom lehetősége.”
           </motion.p>
 
           <motion.p
             {...fadeUp(0.22, 14)}
             className="mt-6 max-w-xl font-sans text-[16px] leading-relaxed text-ink/80"
           >
-            Gyermekkoromtól foglalkoztat, mi motiválja az embereket, hogyan
-            lehet őket jobban megismerni és támogatni. Szociálpedagógiai
-            tanulmányaimat követően mentálhigiénés szakemberként és
-            meseterapeutaként mélyítettem tovább ezt az utat — egyéni
-            kísérésben, közösségek megtartásában és egyetemisták
-            stresszkezelésének támogatásában szerzett tapasztalattal.
+            A történetek nemcsak emlékek, hanem útmutatók is. Ilyen módon a
+            mese segíthet új nézőpontból látni a nehéz helyzeteket, és több
+            nyugalommal, figyelemmel és önbizalommal lépni tovább.
           </motion.p>
-
-          <motion.ul
-            {...fadeUp(0.32, 14)}
-            className="mt-8 flex flex-wrap gap-2.5"
-          >
-            {CREDENTIALS.map((c) => (
-              <li
-                key={c}
-                className="rounded-full border border-forest/20 px-4 py-1.5 font-sans text-[13.5px] font-medium text-forest"
-              >
-                {c}
-              </li>
-            ))}
-          </motion.ul>
         </div>
       </div>
     </section>

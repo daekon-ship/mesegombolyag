@@ -1,39 +1,15 @@
-import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { fadeUpStagger } from "../lib/motion";
-
-const OCCASIONS = [
+const offerings = [
   {
-    title: "Egyéni meseterápiás folyamatok",
-    text: "Személyes kísérés, ahol a mese eszköz ahhoz, hogy más nézőpontból lássuk saját élethelyzetünket.",
-    tag: "Egyéni",
+    title: "Személyes mesealapú beszélgetés",
+    text: "Bizalmi és nyugodt tér, ahol a történetek és a szimbólumok új perspektívát adnak a nehéz helyzetekhez.",
   },
   {
-    title: "Személyes workshopok Szegeden",
-    text: "Alkalmanként meghirdetett, élőben megélt alkalmak, ahol a történet közös térben mozdul meg.",
-    tag: "Csoportos",
+    title: "Anyák és gyermekek közös meseidő",
+    text: "A közös játék, a nyugodt hangulat és a történet összekötheti a családi ritmust és a bizalmat.",
   },
   {
-    title: "Belső gyermek workshop",
-    text: "Játékos, mégis mélyen személyes alkalom, amely a bennünk élő gyermeki résszel teremt kapcsolatot.",
-    tag: "Workshop",
-  },
-  {
-    title: "Önbizalom- és reziliencia-erősítő alkalmak",
-    text: "Mesei szimbólumok és gyakorlatok mentén épített folyamat a belső stabilitás erősítésére.",
-    tag: "Workshop",
-    pending: true,
-  },
-  {
-    title: "Művészetterápiás foglalkozások kisgyermekes anyáknak",
-    text: "Alkotó, testközeli alkalmak, amelyek teret adnak a feltöltődésnek és az önkifejezésnek.",
-    tag: "Anyáknak",
-  },
-  {
-    title: "Csoportos mesés alkalmak",
-    text: "Közös mesehallgatás és -alkotás, amely a csoport megtartó erejére épít.",
-    tag: "Csoportos",
-    pending: true,
+    title: "Csoportos mese- és alkotó kör",
+    text: "Közösségi, kézművesen és narratív módon támogatott alkalom, amely a figyelmet és a kapcsolódást erősíti.",
   },
 ];
 
@@ -47,50 +23,40 @@ export function Occasions() {
               Alkalmak és folyamatok
             </p>
             <h2 className="max-w-lg font-serif text-[1.9rem] leading-tight sm:text-[2.3rem]">
-              Válaszd ki, milyen formában találkoznál a mesékkel
+              Biztonságos, személyre szabott mesés pillanatok a saját tempódban.
             </h2>
           </div>
           <p className="max-w-xs font-sans text-sm leading-relaxed text-paper/65">
-            Az időpontokról és aktuális helyekről Johannával egyeztetve
-            kaphatsz pontos tájékoztatást.
+            A mélyebb részletek és az időpontok személyes egyeztetéssel alakulnak.
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
-          {OCCASIONS.map((item, i) => (
-            <motion.article
+        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+          {offerings.map((item) => (
+            <article
               key={item.title}
-              {...fadeUpStagger(i)}
-              className="group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-[28px] border border-paper/12 bg-paper/[0.04] p-7 transition-colors hover:border-ochre/40 hover:bg-paper/[0.07]"
+              className="rounded-[26px] border border-paper/12 bg-paper/[0.04] p-6 text-left shadow-[0_16px_32px_rgba(20,31,29,0.12)]"
             >
-              <div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-full border border-paper/20 px-3 py-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-paper/70">
-                    {item.tag}
-                  </span>
-                  {item.pending && (
-                    <span className="font-sans text-[11px] italic text-ochre/80">
-                      aktuális
-                    </span>
-                  )}
-                </div>
-                <h3 className="mt-5 font-serif text-[1.35rem] leading-snug text-paper sm:text-2xl">
-                  {item.title}
-                </h3>
-                <p className="mt-3 font-sans text-[14.5px] leading-relaxed text-paper/70">
-                  {item.text}
-                </p>
-              </div>
-
-              <a
-                href="#kapcsolat"
-                className="focus-ring mt-7 inline-flex w-fit items-center gap-1.5 font-sans text-sm font-semibold text-ochre transition-colors group-hover:text-paper"
-              >
-                Érdeklődöm
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </motion.article>
+              <span className="inline-flex rounded-full border border-paper/15 bg-paper/5 px-2.5 py-1 font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-ochre">
+                Alkalom
+              </span>
+              <h3 className="mt-5 font-serif text-2xl text-paper">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-paper/75">{item.text}</p>
+            </article>
           ))}
+        </div>
+
+        <div className="mt-10 rounded-[28px] border border-paper/12 bg-paper/[0.04] p-8 sm:mt-14">
+          <p className="max-w-2xl font-sans text-base leading-relaxed text-paper/75">
+            A pontos időpontok és a személyes egyeztetés után tudjuk a legjobban összehangolni a folyamatot, a környezetet és a végeredményt.
+          </p>
+
+          <a
+            href="mailto:mesegombolyag@gmail.com"
+            className="focus-ring mt-7 inline-flex items-center gap-2 rounded-full bg-paper px-5 py-3 font-sans text-sm font-semibold text-forest transition-colors hover:bg-ochre hover:text-forest"
+          >
+            Kapcsolat Johannával
+          </a>
         </div>
       </div>
     </section>

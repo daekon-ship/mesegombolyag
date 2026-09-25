@@ -1,10 +1,7 @@
-import { CalendarDays, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAppContext } from "../context/AppState";
+import { events, groups } from "../lib/siteData";
 
 export function EventsPage() {
-  const { events, groups } = useAppContext();
-
   return (
     <div className="min-h-screen bg-paper text-ink">
       <header className="border-b border-forest/10 bg-paper/90 backdrop-blur-sm">
@@ -29,57 +26,30 @@ export function EventsPage() {
         </section>
 
         <section className="space-y-8">
-          <div>
-            <h2 className="mb-5 font-serif text-3xl text-forest">Csoportos programok</h2>
-            <div className="grid gap-5 md:grid-cols-2">
-              {groups.map((group) => (
-                <article key={group.id} className="overflow-hidden rounded-[28px] border border-forest/10 bg-white/60 shadow-sm">
-                  <img src={group.image} alt={group.title} className="h-56 w-full object-cover" />
-                  <div className="p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-serif text-2xl text-forest">{group.title}</h3>
-                      <span className="rounded-full bg-forest px-2.5 py-1 text-xs font-semibold text-paper">{group.active ? "Aktív" : "Inaktív"}</span>
-                    </div>
-                    <p className="mt-3 text-sm text-ink/70">{group.description}</p>
-                    <div className="mt-4 space-y-2 text-sm text-ink/70">
-                      <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-terracotta" /> {group.date} · {group.time}</div>
-                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-terracotta" /> {group.location}</div>
-                      <div className="flex items-center gap-2"><Users className="h-4 w-4 text-terracotta" /> {group.capacity} fő</div>
-                    </div>
-                    <Link to={`/esemenyek/${group.id}`} className="mt-5 inline-flex rounded-full bg-forest px-5 py-2.5 font-sans text-sm font-semibold text-paper hover:bg-terracotta">
-                      Jelentkezés a programra
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="mb-5 font-serif text-3xl text-forest">Események</h2>
-            <div className="grid gap-5 md:grid-cols-2">
-              {events.map((event) => (
-                <article key={event.id} className="overflow-hidden rounded-[28px] border border-forest/10 bg-white/60 shadow-sm">
-                  <img src={event.image} alt={event.title} className="h-56 w-full object-cover" />
-                  <div className="p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-serif text-2xl text-forest">{event.title}</h3>
-                      <span className="rounded-full bg-terracotta/10 px-2.5 py-1 text-xs font-semibold text-terracotta">{event.status}</span>
-                    </div>
-                    <p className="mt-3 text-sm text-ink/70">{event.shortDescription}</p>
-                    <div className="mt-4 space-y-2 text-sm text-ink/70">
-                      <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-terracotta" /> {event.date} · {event.startTime}</div>
-                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-terracotta" /> {event.location}</div>
-                      <div className="flex items-center gap-2"><Users className="h-4 w-4 text-terracotta" /> Jelentkezés</div>
-                    </div>
-                    <Link to={`/esemenyek/${event.slug}`} className="mt-5 inline-flex rounded-full bg-forest px-5 py-2.5 font-sans text-sm font-semibold text-paper hover:bg-terracotta">
-                      Részletek és jelentkezés
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
+          {[...groups, ...events].map((item) => (
+            <article key={item.id} className="rounded-[28px] border border-forest/10 bg-white/60 p-6 shadow-sm sm:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <span className="inline-flex rounded-full bg-terracotta/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-terracotta">
+                    {"date" in item ? "Esemény" : "Csoport"}
+                  </span>
+                  <h2 className="mt-4 font-serif text-3xl text-forest">{item.title}</h2>
+                  <p className="mt-3 max-w-2xl text-base text-ink/70">{item.description}</p>
+                </div>
+                <Link
+                  to={"slug" in item ? `/esemenyek/${item.slug}` : `/esemenyek/${item.id}`}
+                  className="inline-flex rounded-full bg-forest px-5 py-3 font-sans text-sm font-semibold text-paper hover:bg-terracotta"
+                >
+                  Részletek
+                </Link>
+              </div>
+              <div className="mt-6 grid gap-4 text-sm text-ink/75 sm:grid-cols-3">
+                <div><span className="font-semibold text-forest">Dátum:</span> {item.date}</div>
+                <div><span className="font-semibold text-forest">Idő:</span> {"time" in item ? item.time : `${item.startTime}–${item.endTime}`}</div>
+                <div><span className="font-semibold text-forest">Helyszín:</span> {item.location}</div>
+              </div>
+            </article>
+          ))}
         </section>
       </main>
     </div>

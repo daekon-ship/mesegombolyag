@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Instagram, Mail, MapPin } from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 import { YarnMark } from "../components/motifs/YarnMark";
 import { BranchMotif } from "../components/motifs/BranchMotif";
 import johannaPortrait from "../assets/photos/johanna-portrait-fixed.jpg";
@@ -62,12 +62,9 @@ const THEMES = [
 ];
 
 const OCCASIONS = [
-  "Egyéni meseterápiás folyamatok",
-  "Személyes workshopok Szegeden",
-  "Belső gyermek workshop",
-  "Önbizalom- és reziliencia-erősítő alkalmak",
-  "Művészetterápiás foglalkozások kisgyermekes anyáknak",
-  "Csoportos mesés alkalmak",
+  "Személyes mesealapú beszélgetés — biztos, nyugodt tér a nehéz helyzetek feldolgozásához.",
+  "Anyák és gyermekek közös meseideje — játék, bizalom és közös nyugalom a családi ritmusban.",
+  "Csoportos mese- és alkotó kör — a közösség és a történet tartó ereje a változás felé.",
 ];
 
 const STEPS = [
@@ -101,12 +98,12 @@ export default function PreviewPage() {
             Weboldal látványterv
           </h1>
           <p className="mx-auto mt-4 max-w-sm font-script text-xl text-mauve">
-            Meseterápiával a lelki immunrendszerért.
+            A mese és a személyes figyelem helye.
           </p>
           <p className="mx-auto mt-5 max-w-xs font-sans text-sm leading-relaxed text-ink/65">
-            Az alábbi oldalak a Mesegombolyag weboldal tervezett vizuális
-            hangulatát és felépítését mutatják be — egy helyen, könnyen
-            áttekinthetően.
+            Az alábbi oldalak a Mesegombolyag weboldal arculatát és a
+            kapcsolatfelvételre vonatkozó, személyre szabott megközelítést
+            mutatják be.
           </p>
         </header>
 
@@ -128,9 +125,8 @@ export default function PreviewPage() {
             A történetek néha ott találnak meg, ahol a szavaink elfogynak.
           </h2>
           <p className="mx-auto mt-4 max-w-sm text-center font-sans text-[14.5px] leading-relaxed text-ink/70">
-            Egyéni folyamatok és személyes workshopok Szegeden, ahol a
-            népmesék, a kreativitás és a közös figyelem segítenek közelebb
-            kerülni belső erőforrásainkhoz.
+            A mese és a személyes figyelem helye: itt a nyugalom, a
+            kreativitás és a bizalom adhat új irányt a nehéz pillanatokhoz.
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <span className="rounded-full bg-forest px-5 py-2.5 font-sans text-[13px] font-semibold text-paper">
@@ -140,7 +136,7 @@ export default function PreviewPage() {
         </Panel>
 
         {/* Intro / value proposition */}
-        <Panel index="02" label="Meseterápia · Bevezető" tone="sage">
+        <Panel index="02" label="A mese · Bevezető" tone="sage">
           <h2 className="text-balance text-center font-serif text-[1.5rem] leading-[1.3] text-forest">
             Minden élethelyzetnek megvan a maga története. És minden
             történetben ott rejtőzhet egy következő lépés.
@@ -209,12 +205,9 @@ export default function PreviewPage() {
             rejlő évszázados tudás találkozik.”
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Tag>Mentálhigiénés szakember</Tag>
-            <Tag>Meseterapeuta</Tag>
-            <div className="flex items-center gap-1.5 rounded-full bg-forest px-3.5 py-1.5 font-sans text-[12.5px] font-medium text-paper">
-              <MapPin className="h-3.5 w-3.5 text-ochre" />
-              Szeged
-            </div>
+            <Tag>Bizalom</Tag>
+            <Tag>Figyelem</Tag>
+            <Tag>Nyugalom</Tag>
           </div>
         </Panel>
 
@@ -270,7 +263,7 @@ export default function PreviewPage() {
             <span className="font-serif text-base text-paper">Mesegombolyag</span>
           </div>
           <p className="mt-2 font-sans text-xs text-paper/50">
-            Tóth Johanna · meseterapeuta · Szeged · mesegombolyag@gmail.com
+            Tóth Johanna · mesegombolyag@gmail.com
           </p>
         </section>
 

@@ -52,11 +52,11 @@ export function EventDetailPage() {
   const remainingSpots = Math.max((isGroupFlow ? group!.capacity : event!.capacity) - currentCount, 0);
   const itemStatus = isGroupFlow ? "Csoport" : event?.status ?? "published";
 
-  const handleSubmit = (eventSubmit: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (eventSubmit: FormEvent<HTMLFormElement>) => {
     eventSubmit.preventDefault();
 
     if (isGroupFlow) {
-      const result = addGroupRegistration({
+      const result = await addGroupRegistration({
         groupId: group!.id,
         name: form.name,
         email: form.email,
@@ -81,7 +81,7 @@ export function EventDetailPage() {
       return;
     }
 
-    const result = addEventRegistration({
+    const result = await addEventRegistration({
       eventId: event!.id,
       name: form.name,
       email: form.email,

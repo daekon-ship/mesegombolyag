@@ -6,18 +6,18 @@ import { useAppContext } from "../context/AppState";
 export function AdminLoginPage() {
   const navigate = useNavigate();
   const { isAdmin, loginAdmin } = useAppContext();
-  const [username, setUsername] = useState("mesegombolyag");
-  const [password, setPassword] = useState("mesegombolyag-demo");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   if (isAdmin) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const ok = loginAdmin(username, password);
+    const ok = await loginAdmin(username, password);
     if (!ok) {
       setError("Hibás felhasználónév vagy jelszó.");
       return;
@@ -34,7 +34,7 @@ export function AdminLoginPage() {
         </div>
         <h1 className="mt-6 text-center font-serif text-4xl text-forest">Admin felület</h1>
         <p className="mt-3 text-center text-sm text-ink/70">
-          A demó admin hozzáféréshez add meg a megadott felhasználónevet és jelszót.
+          Az admin belépés a szerveroldali hitelesítő rendszerhez kötődik; a jelszó nem kerül a frontend kódba.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -71,7 +71,7 @@ export function AdminLoginPage() {
         </form>
 
         <div className="mt-6 rounded-2xl border border-forest/10 bg-forest/5 px-4 py-3 text-sm text-ink/80">
-          Demo hozzáférés: <span className="font-semibold">mesegombolyag</span> / <span className="font-semibold">mesegombolyag-demo</span>
+          A hozzáférési adatok a szerver konfigurációjában vannak tárolva; a frontend ezt nem mutatja meg.
         </div>
       </div>
     </div>

@@ -1,0 +1,23 @@
+{
+  "siteContent": {
+    "heroTitle": "A történetek néha ott találnak meg, ahol a szavaink elfogynak.",
+    "heroSubtitle": "Meseterápiával a lelki immunrendszerért.",
+    "heroDescription": "Egyéni folyamatok és személyes workshopok Szegeden, ahol a népmesék, a kreativitás és a közös figyelem segítenek közelebb kerülni belső erőforrásainkhoz.",
+    "introTitle": "Minden élethelyzetnek megvan a maga története.",
+    "introText": "A népmesék szimbólumai és megküzdési mintái évszázados tudást hordoznak. Segítségükkel más nézőpontból tekinthetünk saját élethelyzeteinkre.",
+    "contactEmail": "mesegombolyag@gmail.com",
+    "contactPhone": "",
+    "location": "Szeged"
+  },
+  "bookings": [],
+  "groupRegistrations": [],
+  "eventRegistrations": [],
+  "adminUsers": [
+    {
+      "username": "mesegombolyag",
+      "email": "mesegombolyag@gmail.com",
+      "passwordHash": "$2a$10$hBon7rVMS.h/XccsW4tQ1.PTM7y8L43mxUY8oLfX.ise8jBwhAh3W"
+    }
+  ],
+  "emailLogs": []
+}

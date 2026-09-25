@@ -12,8 +12,7 @@ export function Footer() {
               <span className="font-serif text-lg text-paper">Mesegombolyag</span>
             </div>
             <p className="mt-3 max-w-xs font-sans text-sm leading-relaxed text-paper/60">
-              Tóth Johanna · meseterapeuta és mentálhigiénés szakember ·
-              Szeged
+              A mese és a személyes figyelem helye.
             </p>
           </div>
 

@@ -15,7 +15,7 @@ export function Testimonials() {
             „A mese ott kezdődik, ahol a szavak már nem elégségesek — ott, ahol a történet segít megérteni az utat.”
           </p>
           <p className="mt-5 font-sans text-xs italic text-ink/50">
-            Tóth Johanna meseterápiás megközelítése
+            Tóth Johanna
           </p>
         </motion.div>
       </div>

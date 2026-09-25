@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import {
-  adminCredentials,
   availability,
   bookings as initialBookings,
   eventRegistrations as initialEventRegistrations,
@@ -24,6 +23,20 @@ import {
   type GroupRegistration,
   type SiteContent,
 } from "../lib/siteData";
+import {
+  checkAdminSession,
+  createBooking,
+  createEventRegistration,
+  createGroupRegistration,
+  fetchAdminData,
+  fetchPublicData,
+  loginAdmin as apiLoginAdmin,
+  logoutAdmin as apiLogoutAdmin,
+  updateBookingStatus as apiUpdateBookingStatus,
+  updateEventRegistrationStatus as apiUpdateEventRegistrationStatus,
+  updateGroupRegistrationStatus as apiUpdateGroupRegistrationStatus,
+  updateSiteContent as apiUpdateSiteContent,
+} from "../lib/api";
 
 export type BookingDraft = {
   serviceId: string;
@@ -70,15 +83,15 @@ type AppStateValue = {
   services: typeof services;
   siteContent: SiteContent;
   isAdmin: boolean;
-  loginAdmin: (usernameOrEmail: string, password: string) => boolean;
-  logoutAdmin: () => void;
-  addBooking: (draft: BookingDraft) => { ok: boolean; message: string; booking?: BookingRecord };
-  addGroupRegistration: (draft: GroupDraft) => { ok: boolean; message: string };
-  addEventRegistration: (draft: EventDraft) => { ok: boolean; message: string };
-  updateBookingStatus: (bookingId: string, status: BookingStatusUpdate) => void;
-  updateGroupRegistrationStatus: (registrationId: string, status: GroupStatusUpdate) => void;
-  updateEventRegistrationStatus: (registrationId: string, status: "pending" | "approved" | "cancelled") => void;
-  updateSiteContent: (content: Partial<SiteContent>) => void;
+  loginAdmin: (usernameOrEmail: string, password: string) => Promise<boolean>;
+  logoutAdmin: () => Promise<void>;
+  addBooking: (draft: BookingDraft) => Promise<{ ok: boolean; message: string; booking?: BookingRecord }>;
+  addGroupRegistration: (draft: GroupDraft) => Promise<{ ok: boolean; message: string }>;
+  addEventRegistration: (draft: EventDraft) => Promise<{ ok: boolean; message: string }>;
+  updateBookingStatus: (bookingId: string, status: BookingStatusUpdate) => Promise<void>;
+  updateGroupRegistrationStatus: (registrationId: string, status: GroupStatusUpdate) => Promise<void>;
+  updateEventRegistrationStatus: (registrationId: string, status: "pending" | "approved" | "cancelled") => Promise<void>;
+  updateSiteContent: (content: Partial<SiteContent>) => Promise<void>;
   getAvailableSlots: (date: string, serviceId: string) => string[];
   getUpcomingBookings: () => BookingRecord[];
   getUpcomingGroups: () => typeof groups;
@@ -87,221 +100,143 @@ type AppStateValue = {
   getEventRegistrationCount: (eventId: string) => number;
 };
 
-const STORAGE_KEYS = {
-  bookings: "mesegombolyag.bookings",
-  groupRegistrations: "mesegombolyag.groupRegistrations",
-  eventRegistrations: "mesegombolyag.eventRegistrations",
-  siteContent: "mesegombolyag.siteContent",
-  isAdmin: "mesegombolyag.isAdmin",
-};
-
-function readStorageValue<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (raw === null) {
-      return fallback;
-    }
-
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 const AppStateContext = createContext<AppStateValue | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [bookings, setBookings] = useState<BookingRecord[]>(() => readStorageValue(STORAGE_KEYS.bookings, initialBookings));
-  const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>(() => readStorageValue(STORAGE_KEYS.groupRegistrations, initialGroupRegistrations));
-  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>(() => readStorageValue(STORAGE_KEYS.eventRegistrations, initialEventRegistrations));
-  const [siteContent, setSiteContent] = useState<SiteContent>(() => readStorageValue(STORAGE_KEYS.siteContent, initialSiteContent));
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    if (typeof window === "undefined") {
-      return false;
+  const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
+  const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>(initialGroupRegistrations);
+  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>(initialEventRegistrations);
+  const [siteContent, setSiteContent] = useState<SiteContent>(initialSiteContent);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function bootstrap() {
+      try {
+        const [publicDataResponse, sessionResponse] = await Promise.all([
+          fetchPublicData(),
+          checkAdminSession(),
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        if (publicDataResponse.ok && publicDataResponse.data) {
+          setBookings((publicDataResponse.data.bookings ?? []) as BookingRecord[]);
+          setGroupRegistrations((publicDataResponse.data.groupRegistrations ?? []) as GroupRegistration[]);
+          setEventRegistrations((publicDataResponse.data.eventRegistrations ?? []) as EventRegistration[]);
+          setSiteContent((publicDataResponse.data.siteContent ?? initialSiteContent) as SiteContent);
+        }
+
+        if (sessionResponse.ok && sessionResponse.data?.loggedIn) {
+          setIsAdmin(true);
+        }
+      } catch {
+        setIsAdmin(false);
+      }
     }
 
-    return window.localStorage.getItem(STORAGE_KEYS.isAdmin) === "true";
-  });
+    bootstrap();
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
-  }, [bookings]);
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.groupRegistrations, JSON.stringify(groupRegistrations));
-  }, [groupRegistrations]);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.eventRegistrations, JSON.stringify(eventRegistrations));
-  }, [eventRegistrations]);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.siteContent, JSON.stringify(siteContent));
-  }, [siteContent]);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.isAdmin, JSON.stringify(isAdmin));
-  }, [isAdmin]);
-
-  const loginAdmin = (usernameOrEmail: string, password: string) => {
-    const normalizedUser = usernameOrEmail.trim().toLowerCase();
-    const ok =
-      (normalizedUser === adminCredentials.username.toLowerCase() || normalizedUser === adminCredentials.email.toLowerCase()) &&
-      password === adminCredentials.password;
-
-    setIsAdmin(ok);
-    return ok;
-  };
-
-  const logoutAdmin = () => setIsAdmin(false);
-
-  const openReplyEmail = (recipient: string, subject: string, body: string) => {
-    if (typeof window === "undefined" || !recipient) {
-      return;
+  const loginAdmin = async (usernameOrEmail: string, password: string) => {
+    const response = await apiLoginAdmin(usernameOrEmail, password);
+    if (response.ok) {
+      setIsAdmin(true);
+      const adminData = await fetchAdminData();
+      if (adminData.ok && adminData.data) {
+        setBookings(adminData.data.bookings as BookingRecord[]);
+        setGroupRegistrations(adminData.data.groupRegistrations as GroupRegistration[]);
+        setEventRegistrations(adminData.data.eventRegistrations as EventRegistration[]);
+        setSiteContent(adminData.data.siteContent as SiteContent);
+      }
+      return true;
     }
 
-    const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+    setIsAdmin(false);
+    return false;
   };
 
-  const addBooking = (draft: BookingDraft) => {
+  const logoutAdmin = async () => {
+    await apiLogoutAdmin();
+    setIsAdmin(false);
+  };
+
+  const addBooking = async (draft: BookingDraft) => {
     const service = services.find((item) => item.id === draft.serviceId);
     if (!service) {
       return { ok: false, message: "A kiválasztott szolgáltatás nem található." };
     }
 
-    const currentSlots = getAvailableSlots(draft.date, draft.serviceId);
-    if (!draft.date || !draft.slot || !currentSlots.includes(draft.slot)) {
-      return { ok: false, message: "Ez az időpont már nem elérhető vagy érvénytelen." };
+    const response = await createBooking(draft);
+    if (!response.ok) {
+      return { ok: false, message: response.message || "A foglalás elküldése meghiúsult." };
     }
 
-    const booking: BookingRecord = {
+    const booking = (response.data as BookingRecord | undefined) ?? {
       id: `bk-${Date.now()}`,
-      serviceId: draft.serviceId,
-      date: draft.date,
-      slot: draft.slot,
-      name: draft.name,
-      email: draft.email,
-      phone: draft.phone,
-      childName: draft.childName,
-      notes: draft.notes,
+      ...draft,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
 
     setBookings((prev) => [booking, ...prev]);
-    return { ok: true, message: "A foglalás rögzítve, hamarosan visszajelzünk.", booking };
+    return { ok: true, message: response.message || "A foglalás rögzítve, hamarosan visszajelzünk.", booking };
   };
 
-  const addGroupRegistration = (draft: GroupDraft) => {
-    const group = groups.find((item) => item.id === draft.groupId);
-    if (!group) {
-      return { ok: false, message: "A kiválasztott csoport nem található." };
+  const addGroupRegistration = async (draft: GroupDraft) => {
+    const response = await createGroupRegistration(draft);
+    if (!response.ok) {
+      return { ok: false, message: response.message || "A csoportos jelentkezés elküldése meghiúsult." };
     }
 
-    const reserved = getGroupAttendanceCount(draft.groupId);
-    if (group.capacity <= reserved) {
-      return { ok: false, message: "A csoport már betelt, nem tudsz rá jelentkezni." };
+    const next = response.data as GroupRegistration | undefined;
+    if (next) {
+      setGroupRegistrations((prev) => [next, ...prev]);
     }
 
-    const registration: GroupRegistration = {
-      id: `gr-${Date.now()}`,
-      groupId: draft.groupId,
-      name: draft.name,
-      email: draft.email,
-      phone: draft.phone,
-      preferredDate: draft.preferredDate || group.date,
-      preferredTime: draft.preferredTime || group.time,
-      notes: draft.notes,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    };
-
-    setGroupRegistrations((prev) => [registration, ...prev]);
-    return { ok: true, message: "A csoportos jelentkezés rögzítve." };
+    return { ok: true, message: response.message || "A csoportos jelentkezés rögzítve." };
   };
 
-  const addEventRegistration = (draft: EventDraft) => {
-    const event = events.find((item) => item.id === draft.eventId);
-    if (!event) {
-      return { ok: false, message: "A kiválasztott esemény nem létezik." };
+  const addEventRegistration = async (draft: EventDraft) => {
+    const response = await createEventRegistration(draft);
+    if (!response.ok) {
+      return { ok: false, message: response.message || "Az eseményre történő jelentkezés elküldése meghiúsult." };
     }
 
-    const currentCount = getEventAttendanceCount(draft.eventId);
-    if (event.capacity <= currentCount) {
-      return { ok: false, message: "Az esemény már betelt." };
+    const next = response.data as EventRegistration | undefined;
+    if (next) {
+      setEventRegistrations((prev) => [next, ...prev]);
     }
 
-    const registration: EventRegistration = {
-      id: `er-${Date.now()}`,
-      eventId: draft.eventId,
-      name: draft.name,
-      email: draft.email,
-      phone: draft.phone,
-      preferredDate: draft.preferredDate || event.date,
-      preferredTime: draft.preferredTime || event.startTime,
-      guests: draft.guests,
-      notes: draft.notes,
-      createdAt: new Date().toISOString(),
-    };
-
-    setEventRegistrations((prev) => [registration, ...prev]);
-    return { ok: true, message: "Az eseményre való jelentkezés rögzítve." };
+    return { ok: true, message: response.message || "Az eseményre való jelentkezés rögzítve." };
   };
 
-  const updateBookingStatus = (bookingId: string, status: BookingStatusUpdate) => {
-    setBookings((prev) => {
-      const next = prev.map((booking) => booking.id === bookingId ? { ...booking, status } : booking);
-      const changed = next.find((booking) => booking.id === bookingId);
-
-      if (changed && changed.email) {
-        const subject = status === "confirmed" ? "Foglalásod jóváhagyva" : "Foglalásod elutasítva";
-        const body = status === "confirmed"
-          ? `Kedves ${changed.name}!\n\nA foglalásodat jóváhagytuk.\nIdőpont: ${changed.date} ${changed.slot}\nKöszönjük, hogy nálunk gondolkoztál.\n\nÜdvözlettel:\nMesegombolyag`
-          : `Kedves ${changed.name}!\n\nSajnos a foglalásodat jelenleg nem tudjuk elfogadni.\nHa szeretnéd, kérjük, írj nekünk új időpontra vagy másik lehetőségre.\n\nÜdvözlettel:\nMesegombolyag`;
-        openReplyEmail(changed.email, subject, body);
-      }
-
-      return next;
-    });
+  const updateBookingStatus = async (bookingId: string, status: BookingStatusUpdate) => {
+    const response = await apiUpdateBookingStatus(bookingId, status);
+    if (response.ok) {
+      setBookings((prev) => prev.map((booking) => booking.id === bookingId ? { ...booking, status } : booking));
+    }
   };
 
-  const updateGroupRegistrationStatus = (registrationId: string, status: GroupStatusUpdate) => {
-    setGroupRegistrations((prev) => {
-      const next = prev.map((entry) => entry.id === registrationId ? { ...entry, status } : entry);
-      const changed = next.find((entry) => entry.id === registrationId);
-
-      if (changed && changed.email) {
-        const subject = status === "approved" ? "Csoportos jelentkezésed jóváhagyva" : "Csoportos jelentkezésed elutasítva";
-        const body = status === "approved"
-          ? `Kedves ${changed.name}!\n\nA csoportos jelentkezésedet elfogadtuk.\nKöszönjük a bizalmat!\n\nÜdvözlettel:\nMesegombolyag`
-          : `Kedves ${changed.name}!\n\nA csoportos jelentkezésedet jelenleg nem tudjuk fogadni.\nHa szeretnéd, írj nekünk másik időpontért.\n\nÜdvözlettel:\nMesegombolyag`;
-        openReplyEmail(changed.email, subject, body);
-      }
-
-      return next;
-    });
+  const updateGroupRegistrationStatus = async (registrationId: string, status: GroupStatusUpdate) => {
+    const response = await apiUpdateGroupRegistrationStatus(registrationId, status);
+    if (response.ok) {
+      setGroupRegistrations((prev) => prev.map((entry) => entry.id === registrationId ? { ...entry, status } : entry));
+    }
   };
 
-  const updateEventRegistrationStatus = (registrationId: string, status: "pending" | "approved" | "cancelled") => {
-    setEventRegistrations((prev) => {
-      const next = prev.map((entry) => entry.id === registrationId ? { ...entry, status } : entry);
-      const changed = next.find((entry) => entry.id === registrationId);
-
-      if (changed && changed.email) {
-        const subject = status === "approved" ? "Eseményre jelentkezésed jóváhagyva" : "Eseményre jelentkezésed elutasítva";
-        const body = status === "approved"
-          ? `Kedves ${changed.name}!\n\nAz eseményre történő jelentkezésedet elfogadtuk.\nKöszönjük, hogy velünk tartasz!\n\nÜdvözlettel:\nMesegombolyag`
-          : `Kedves ${changed.name}!\n\nAz eseményre történő jelentkezésedet jelenleg nem tudjuk fogadni.\nHa szeretnéd, írj nekünk másik alkalomról.\n\nÜdvözlettel:\nMesegombolyag`;
-        openReplyEmail(changed.email, subject, body);
-      }
-
-      return next;
-    });
+  const updateEventRegistrationStatus = async (registrationId: string, status: "pending" | "approved" | "cancelled") => {
+    const response = await apiUpdateEventRegistrationStatus(registrationId, status);
+    if (response.ok) {
+      setEventRegistrations((prev) => prev.map((entry) => entry.id === registrationId ? { ...entry, status } : entry));
+    }
   };
 
   const value = useMemo<AppStateValue>(
@@ -323,7 +258,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateBookingStatus,
       updateGroupRegistrationStatus,
       updateEventRegistrationStatus,
-      updateSiteContent: (content) => setSiteContent((prev) => ({ ...prev, ...content })),
+      updateSiteContent: async (content) => {
+        const response = await apiUpdateSiteContent(content);
+        if (response.ok && response.data?.siteContent) {
+          setSiteContent(response.data.siteContent as SiteContent);
+        }
+      },
       getAvailableSlots,
       getUpcomingBookings: () => [...bookings].sort((a, b) => a.date.localeCompare(b.date)),
       getUpcomingGroups: () => [...groups].sort((a, b) => a.date.localeCompare(b.date)),
@@ -331,7 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       getGroupRegistrationCount: (groupId) => getGroupAttendanceCount(groupId),
       getEventRegistrationCount: (eventId) => getEventAttendanceCount(eventId),
     }),
-    [bookings, events, groupRegistrations, eventRegistrations, isAdmin, siteContent],
+    [bookings, events, eventRegistrations, groupRegistrations, isAdmin, siteContent],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

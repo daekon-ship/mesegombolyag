@@ -107,7 +107,7 @@ export function AdminBookingsPage() {
             <div className="mt-5 space-y-4">
               <MiniStat label="Aktív csoportok" value={groups.filter((group) => group.active).length.toString()} />
               <MiniStat label="Publikált események" value={events.filter((event) => event.status === "published").length.toString()} />
-              <MiniStat label="Jövő héten" value={bookings.filter((item) => item.date >= "2026-09-24").length.toString()} />
+              <MiniStat label="Jövő héten" value={bookings.filter((item) => item.date >= new Date().toISOString().slice(0, 10)).length.toString()} />
             </div>
           </div>
         </section>

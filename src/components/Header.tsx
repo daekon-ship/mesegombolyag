@@ -6,7 +6,7 @@ import { YarnMark } from "./motifs/YarnMark";
 const NAV_LINKS = [
   { label: "Kezdőlap", href: "#hero" },
   { label: "Rólam", href: "#rolam" },
-  { label: "Meseterápia", href: "#meseterapia" },
+  { label: "A mese", href: "#mese" },
   { label: "Alkalmak", href: "#alkalmak" },
   { label: "Gondolatok", href: "#gondolatok" },
   { label: "Kapcsolat", href: "#kapcsolat" },

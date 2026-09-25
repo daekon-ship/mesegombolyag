@@ -5,16 +5,16 @@ import { fadeUp, fadeUpStagger } from "../lib/motion";
 
 const POSTS = [
   {
-    title: "Mi történik egy meseterápiás alkalmon?",
-    text: "Egy bepillantás abba, milyen hangulat és figyelem veszi körül a közös mesélést.",
+    title: "Mi történik egy személyes beszélgetésen?",
+    text: "Egy bepillantás abba, milyen nyugodt és figyelmes légkörben épülhet fel a kapcsolat.",
   },
   {
     title: "Játékosság felnőttként",
-    text: "Miért van szükségünk felnőttként is a játékos, könnyed jelenlétre — és hogyan találhatunk vissza hozzá.",
+    text: "Miért fontos a könnyedség és a közös figyelem a nehéz időszakokban — és hogyan találhatunk újra hozzáférést a belső nyugalomhoz.",
   },
   {
     title: "Hogyan válhat a mese belső erőforrássá?",
-    text: "A népmesék szimbólumai gyakran pontosan azt a mintát adják, amire egy nehéz pillanatban szükségünk van.",
+    text: "A történetekben gyakran ott rejlik az a nyelv, amely segít új nézőpontból látni a nehézségeket.",
   },
 ];
 
