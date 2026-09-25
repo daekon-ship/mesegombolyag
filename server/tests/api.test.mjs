@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import jwt from "jsonwebtoken";
 import { startTestServer, person } from "./helpers.mjs";
 
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(200, 1)]);
@@ -61,7 +62,7 @@ test("jogosultság: bejelentkezés nélkül az admin végpontok nem érhetők el
   }
 });
 
-test("munkamenet lejárata: lejárt token után 401", async () => {
+test("munkamenet: kijelentkezés és lejárt token után 401", async () => {
   const t = await startTestServer();
   try {
     const cookie = await t.login();
@@ -70,6 +71,14 @@ test("munkamenet lejárata: lejárt token után 401", async () => {
     assert.equal(session.body.data.loggedIn, true);
     const out = await t.request("POST", "/api/admin/logout", undefined, { cookie });
     assert.match(out.headers.get("set-cookie"), /mesegombolyag_admin=;/);
+    // lejárt munkamenet: érvényes aláírású, de lejárt token
+    const expired = jwt.sign({ sub: 1, username: "tesztadmin", exp: Math.floor(Date.now() / 1000) - 60 }, "teszt-titok-legalabb-16-karakter");
+    const res = await t.request("GET", "/api/admin/data", undefined, { cookie: `mesegombolyag_admin=${expired}` });
+    assert.equal(res.status, 401);
+    assert.equal(res.body.code, "UNAUTHENTICATED");
+    assert.match(res.body.message, /munkamenet lejárt/);
+    const s2 = await t.request("GET", "/api/admin/session", undefined, { cookie: `mesegombolyag_admin=${expired}` });
+    assert.equal(s2.body.data.loggedIn, false);
   } finally {
     await t.close();
   }

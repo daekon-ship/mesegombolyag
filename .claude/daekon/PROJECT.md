@@ -38,11 +38,12 @@ Admin: `…/#/admin` — az első admin felhasználó az `ADMIN_USERNAME` / `ADM
 
 ## Tesztek és ellenőrzések (2026-09-25)
 
-- `npm test`: **18/18 sikeres** — jogosultság (401 minden admin végponton, hamis token), nyilvános API személyes adat nélkül, egyéni foglalás + párhuzamos foglalás ugyanarra az időpontra (201/409), ismételt beküldés, lezárt/múltbeli/nem létező időpont, lemondás → felszabadulás, ütköző visszaállítás, DB-szintű egyediség, csoportos jelentkezés + párhuzamos utolsó hely, duplikált e-mail, visszavonás → kapacitás, meseműhely egy rekorddal, zárt/elmarad/múltbeli/piszkozat, érdeklődési típusok, e-mail-hiba melletti sikeres mentés újrapróbálással, vendég lemondási link izolációja, tartalom + képfeltöltés (típus, 5 MB-os korlát, hamisított tartalom), óraátállítás, belépési rate limit.
+- `npm test`: **18/18 sikeres** — jogosultság (401 minden admin végponton, hamis és lejárt token), nyilvános API személyes adat nélkül, egyéni foglalás + párhuzamos foglalás ugyanarra az időpontra (201/409), ismételt beküldés, lezárt/múltbeli/nem létező időpont, lemondás → felszabadulás, ütköző visszaállítás, DB-szintű egyediség, csoportos jelentkezés + párhuzamos utolsó hely, duplikált e-mail, visszavonás → kapacitás, meseműhely egy rekorddal, zárt/elmarad/múltbeli/piszkozat, érdeklődési típusok, e-mail-hiba melletti sikeres mentés újrapróbálással, vendég lemondási link izolációja, tartalom + képfeltöltés (típus, 5 MB-os korlát, hamisított tartalom), óraátállítás, belépési rate limit.
 - `npm run build`: sikeres. `npm audit --omit=dev`: 0 sebezhetőség (nodemailer 6 → 10 frissítés után).
 - Böngészős (Playwright, production build az Express mögött, elkülönített `data/e2e` adatokkal, levélfogóval): admin belépés/hibás jelszó, időpontok meghirdetése, workshop + meseműhely létrehozása képpel, validáció, piszkozat; látogatói foglalás (kliensoldali hibák, siker, a foglalt időpont eltűnik), érdeklődés (előválasztott téma, hibák, megőrzött adatok), programlista, jelentkezés dupla kattintással (1 rekord), admin visszaigazolás (frissítés után is megmarad), vendég lemondás, érvénytelen token, tartalom- és nyitóképcsere megjelenése a nyilvános oldalon, hibás fájltípus, munkamenet nélküli átirányítás, főoldali menü horgonyai (asztali + mobil), hálózati és 500-as hiba az űrlapon (hibaüzenet, adatok megmaradnak, nincs sikerüzenet).
 - Reszponzív: 360/390/768/1440 px — főoldal, programlista, programrészlet, foglalás, érdeklődés és mind a 8 adminképernyő: nincs vízszintes kilógás, nincs konzolhiba.
-- Levelek: a levélfogóban ellenőrizve (címzett, tárgy, program, dátum, állapot, ékezetek, lemondási/admin hivatkozás). **A valódi SMTP-kézbesítés nincs tesztelve** — nincs beállított SMTP-hozzáférés.
+- Levelek: a levélfogóban ellenőrizve (címzett, tárgy, program, dátum, állapot, ékezetek), a HTML-levél 360 px-en renderelve (nincs kilógás), a levélben lévő lemondási hivatkozás a saját foglalásra mutat, az admin-hivatkozás az admin belépésre.
+- Munkamenet lejárata használat közben (böngésző): a művelet nem hajtódik végre, átirányítás a belépéshez „A munkamenet lejárt” üzenettel. **A valódi SMTP-kézbesítés nincs tesztelve** — nincs beállított SMTP-hozzáférés.
 
 ## Javított fontosabb hibák (2026-09-25)
 
@@ -56,6 +57,7 @@ Admin: `…/#/admin` — az első admin felhasználó az `ADMIN_USERNAME` / `ADM
 8. `.env` nem volt gitignore-ban; a jelszó-hash-t tartalmazó JSON adatfájl be volt commitolva → kivéve a követésből.
 9. A nyitókép 1,2 MB volt → 125 KB (1600 px, vizuálisan ellenőrizve DPR2-n).
 10. Admin mobilnézet 390 px-en 681 px-re szélesedett → javítva.
+11. Az `index.html` három, sehol nem használt Google Fonts betűcsaládot töltött be (felesleges kérés és adattovábbítás a Google felé) → eltávolítva; a meta leírás a valós tartalomra cserélve, TODO-megjegyzés törölve, `robots.txt` hozzáadva.
 
 ## Hátralévő feladatok / élesítést akadályozó tényezők
 
