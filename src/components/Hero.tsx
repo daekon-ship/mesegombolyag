@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
 import { HeroThread } from "./motifs/HeroThread";
-import heroPortrait from "../assets/photos/hero-portrait.jpg";
+import { heroPhoto } from "../lib/photos";
+import { useAppContext } from "../context/AppState";
+import { mediaUrl } from "../lib/api";
 import { softEase } from "../lib/motion";
 
 const fadeUp = {
@@ -10,6 +13,7 @@ const fadeUp = {
 };
 
 export function Hero() {
+  const { siteContent } = useAppContext();
   return (
     <section
       id="hero"
@@ -32,7 +36,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.15, ease: softEase }}
             className="font-serif text-[2.5rem] leading-[1.12] tracking-tight text-forest sm:text-[3.1rem] lg:text-[3.6rem]"
           >
-            A történetek néha ott találnak meg, ahol a szavaink elfogynak.
+            {siteContent.heroTitle}
           </motion.h1>
 
           <motion.p
@@ -40,16 +44,15 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.28, ease: softEase }}
             className="mt-6 font-script text-2xl text-mauve sm:text-[1.7rem]"
           >
-            A mese és a személyes figyelem helye.
+            {siteContent.heroSubtitle}
           </motion.p>
 
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.7, delay: 0.38, ease: softEase }}
-            className="mt-6 max-w-md font-sans text-[17px] leading-relaxed text-ink/80"
+            className="mt-6 max-w-[60ch] font-sans text-[17px] leading-relaxed text-ink/80"
           >
-            A mese és a személyes figyelem helye: itt a nyugalom, a
-            kreativitás és a bizalom adhat új irányt a nehéz pillanatokhoz.
+            {siteContent.heroDescription}
           </motion.p>
 
           <motion.div
@@ -57,20 +60,20 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.5, ease: softEase }}
             className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:items-center"
           >
-            <a
-              href="#alkalmak"
+            <Link
+              to="/erdeklodes"
               className="focus-ring group inline-flex items-center justify-center gap-2 rounded-full bg-forest px-6 py-3.5 font-sans text-[15px] font-semibold text-paper transition-colors hover:bg-terracotta"
             >
-              Felfedezem az alkalmakat
+              Érdeklődöm
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </a>
-            <a
-              href="#kapcsolat"
+            </Link>
+            <Link
+              to="/esemenyek"
               className="focus-ring inline-flex items-center justify-center gap-2 rounded-full border border-forest/25 px-6 py-3.5 font-sans text-[15px] font-semibold text-forest transition-colors hover:border-forest hover:bg-forest/5"
             >
-              <Mail className="h-4 w-4" />
-              Kapcsolat Johannával
-            </a>
+              <CalendarDays className="h-4 w-4" />
+              Programok és jelentkezés
+            </Link>
           </motion.div>
         </div>
 
@@ -78,10 +81,10 @@ export function Hero() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: softEase }}
-          className="relative mx-auto flex w-full items-center justify-center px-0 sm:max-w-[420px] lg:max-w-[480px] lg:justify-self-center"
+          className="relative mx-auto flex w-full items-center justify-center px-0 sm:max-w-[420px] lg:max-w-[460px] lg:justify-self-center"
         >
           <div
-            className="relative mx-auto aspect-[3/4] w-full max-w-[360px] overflow-hidden bg-sage shadow-[0_18px_48px_rgba(32,58,50,0.12)] ring-1 ring-forest/10 sm:w-[92%] sm:max-w-[360px] lg:w-[86%] lg:max-w-[420px]"
+            className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden bg-sage shadow-[0_18px_48px_rgba(32,58,50,0.12)] ring-1 ring-forest/10 sm:w-[92%] sm:max-w-[340px] lg:w-[86%] lg:max-w-[400px]"
             style={{
               borderRadius: "58% 42% 47% 53% / 55% 48% 52% 45%",
               margin: 0,
@@ -90,14 +93,12 @@ export function Hero() {
             }}
           >
             <img
-              src={heroPortrait}
-              alt="Tóth Johanna mosolyogva a természetes fényben"
+              src={siteContent.heroImage ? mediaUrl(siteContent.heroImage) : heroPhoto.src}
+              alt={heroPhoto.alt}
               className="h-full w-full object-cover"
-              style={{
-                objectPosition: "62% 22%",
-                transform: "translateX(3%) scale(1.03)",
-              }}
+              style={{ objectPosition: siteContent.heroImage ? "50% 25%" : "28% 18%", transform: "scale(1.02)" }}
               loading="eager"
+              decoding="async"
             />
           </div>
         </motion.div>

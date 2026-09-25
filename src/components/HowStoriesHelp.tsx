@@ -3,70 +3,68 @@ import { BranchMotif } from "./motifs/BranchMotif";
 import { fadeUp } from "../lib/motion";
 
 const THEMES = [
-  {
-    title: "Belső erőforrások",
-    text: "A mesehősök próbatételei szimbolikus térképet adnak ahhoz, hogy felismerjük saját erőforrásainkat — azt, ami már most is bennünk van, csak néha nehéz hozzáférni.",
-    align: "left" as const,
-  },
-  {
-    title: "Önismeret és kapcsolódás",
-    text: "A közösen hallgatott vagy alkotott mese biztonságos távolságot ad ahhoz, hogy önmagunkra és egymásra is másképp figyeljünk.",
-    align: "right" as const,
-  },
-  {
-    title: "Megküzdés és újrakezdés",
-    text: "A népmesék újra és újra a veszteségről, próbatételről és újjászületésről szólnak — mintát adva ahhoz, hogyan lehet egy nehéz fejezet után mégis továbblépni.",
-    align: "left" as const,
-  },
+  "stresszkezelés",
+  "reziliencia – a lelki immunrendszer erősítése",
+  "döntéshozatal",
+  "konfliktuskezelés",
+  "veszteségek feldolgozása",
+  "női szerepek",
+  "életválságok és életciklusváltások kezelése",
 ];
 
+/**
+ * 03 · Miben segíthet a mese?
+ * Bevezető szöveg és a csoportokon gyakran előkerülő témák listája.
+ */
 export function HowStoriesHelp() {
   return (
-    <section id="mese" className="bg-paper py-24 sm:py-32">
+    <section className="bg-paper py-24 sm:py-32">
       <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-12">
-        <motion.p
-          {...fadeUp(0, 14)}
-          className="mb-3 font-sans text-xs font-semibold uppercase tracking-[0.28em] text-terracotta"
-        >
-          Miben segíthet a mese?
-        </motion.p>
-        <motion.h2
-          {...fadeUp(0.1)}
-          className="max-w-2xl font-serif text-[1.9rem] leading-tight text-forest sm:text-[2.4rem]"
-        >
-          A mese nem menekülés a valóság elől — hanem egy másik út befelé.
-        </motion.h2>
-
-        <div className="mt-16 flex flex-col gap-16 sm:mt-20 sm:gap-20">
-          {THEMES.map((theme, i) => (
-            <div
-              key={theme.title}
-              className={`flex flex-col items-start gap-6 sm:items-center sm:gap-10 ${
-                theme.align === "right"
-                  ? "sm:flex-row-reverse sm:justify-end"
-                  : "sm:flex-row sm:justify-start"
-              }`}
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+          <div>
+            <motion.p
+              {...fadeUp(0, 14)}
+              className="mb-3 font-sans text-xs font-semibold uppercase tracking-[0.28em] text-terracotta"
             >
-              <BranchMotif
-                className="h-28 w-16 shrink-0 sm:h-36 sm:w-20"
-                color={i === 1 ? "var(--color-terracotta)" : i === 2 ? "var(--color-mauve)" : "var(--color-forest)"}
-              />
-              <motion.div
-                {...fadeUp(0.05, 24)}
-                className={`max-w-lg ${theme.align === "right" ? "sm:text-right" : ""}`}
-              >
-                <span className="font-serif text-5xl text-forest/15 sm:text-6xl">
-                  0{i + 1}
-                </span>
-                <h3 className="mt-1 font-serif text-2xl text-forest sm:text-[1.7rem]">
-                  {theme.title}
-                </h3>
-                <p className="mt-3 font-sans text-[15.5px] leading-relaxed text-ink/75">
-                  {theme.text}
-                </p>
-              </motion.div>
-            </div>
-          ))}
+              Miben segíthet a mese?
+            </motion.p>
+            <motion.h2
+              {...fadeUp(0.1)}
+              className="max-w-[24ch] font-serif text-[1.9rem] leading-tight text-forest sm:text-[2.4rem]"
+            >
+              A mesék nem kész megoldásokat kínálnak. Inkább kapaszkodókat, új
+              nézőpontokat és egy kis teret ahhoz, hogy meghalld a saját
+              válaszaidat.
+            </motion.h2>
+
+            <BranchMotif
+              className="mt-10 hidden h-44 w-24 text-forest/70 lg:block"
+              color="var(--color-mauve)"
+            />
+          </div>
+
+          <motion.div {...fadeUp(0.15, 20)}>
+            <h3 className="font-serif text-xl text-forest sm:text-2xl">
+              Témák, amik a csoportjaimon gyakran előkerülnek:
+            </h3>
+            <ul className="mt-6 flex flex-col divide-y divide-forest/10 border-y border-forest/10">
+              {THEMES.map((theme, i) => (
+                <motion.li
+                  key={theme}
+                  {...fadeUp(0.1 + i * 0.05, 12)}
+                  className="flex items-center gap-4 py-4"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta/80"
+                  />
+                  <span className="font-sans text-[16px] leading-relaxed text-ink/80">
+                    {theme}
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
         </div>
       </div>
     </section>

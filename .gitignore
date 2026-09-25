@@ -5,3 +5,20 @@ dist-ssr
 .DS_Store
 
 .vercel
+
+# titkos és futásidejű fájlok
+.env
+.env.*
+!.env.example
+*.log
+.freebuff/
+data/*.db
+data/*.db-*
+data/uploads/
+data/mail-capture/
+data/*.backup.json
+test-results/
+data/e2e/
+data/e2e-server.log
+.playwright-mcp/
+data/mesegombolyag-data.json

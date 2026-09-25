@@ -1,41 +1,68 @@
-# Mesegombolyag — Project State
+# Mesegombolyag — projektállapot
 
-**Client:** Tóth Johanna, meseterapeuta (Szeged)
-**Type:** Látványterv (visual concept) — a real, running React prototype, not a static mockup
-**Stack:** Vite + React 18 + TypeScript + Tailwind CSS v4 + Framer Motion + Lucide React
-**Stage:** First coherent implementation, self-reviewed and bug-fixed. Not yet shown to the client for approval.
+**Ügyfél:** Tóth Johanna, meseterapeuta és mentálhigiénés szakember (Szeged)
+**Stack:** Vite + React 18 + TypeScript + Tailwind v4 (frontend) · Node.js ≥ 22.13 + Express + beépített SQLite (`node:sqlite`) + Nodemailer (backend)
+**Utolsó frissítés:** 2026-09-25 — foglalási, jelentkezési és admin rendszer befejezése és tesztelése.
 
-## Run it
+## Futtatás
 
-```
+```bash
 npm install
-npm run dev      # http://localhost:5173/
-npm run build    # production build, currently passing clean (tsc --noEmit && vite build)
+cp .env.example .env      # töltsd ki: JWT_SECRET, ADMIN_PASSWORD, SMTP_* stb.
+npm run dev               # szerver: :3001, frontend (Vite): http://localhost:4173/mesegombolyag/
+npm test                  # szerveroldali tesztek (node:test, ideiglenes adatbázissal)
+npm run build             # típusellenőrzés + production build (dist/)
+npm start                 # production: az Express szolgálja ki az API-t ÉS a dist/-et
+                          #   → http://localhost:3001/mesegombolyag/
 ```
 
-## What exists
+Admin: `…/#/admin` — az első admin felhasználó az `ADMIN_USERNAME` / `ADMIN_PASSWORD` környezeti változókból jön létre (vagy a régi JSON-ból átemelve).
 
-All 11 sections from the brief: header/nav, hero, intro statement, "Miben segíthet a mese" (3 themes), "Alkalmak és folyamatok" (6 occasion cards), "Rólam" (Johanna bio), "Hogyan zajlik" (4-step process), testimonial placeholder, "Gondolatok"/Instagram teaser, contact CTA (mailto), footer.
+## Architektúra
 
-## Real assets used
+- `server/app.mjs` — minden API-végpont, validáció, jogosultság, levélsablonok. `server/index.mjs` — környezeti változók, indítás, régi JSON-adatok egyszeri átemelése.
+- `server/db.mjs` — SQLite séma és migrációk. **Adatbázis-szintű védelem:** részleges egyedi index (egy időpontra egy aktív foglalás), triggerek a program-kapacitásra és a kapacitás csökkentésére, egyedi index az azonos e-mailes aktív jelentkezésre, idempotencia-kulcsok.
+- `server/time.mjs` — minden időpont UTC-ben tárolva, bevitel/megjelenítés Europe/Budapest szerint; óraátállítási lyuk elutasítva, kétértelmű óra következetesen a nyári időre.
+- `server/mail.mjs` — kimenő levélsor (`email_outbox`). Az adatmentés és a levélküldés külön lépés; hibás levél az adminban látszik és újraküldhető. `MAIL_TRANSPORT=smtp|file|fail|disabled`.
+- Adatok: `data/mesegombolyag.db`, feltöltött képek: `data/uploads/`, levélfogó: `data/mail-capture/` (mind gitignore-ban).
 
-Three real photos were selected and cropped from Johanna's own saved Instagram export (`(1) Instagram_files/`), per the brief's priority order:
-- `src/assets/photos/johanna-portrait-fixed.jpg` — hero/about portrait (candid, cropped by the user directly from a source Instagram photo of Johanna in her practice space; supersedes an earlier draft crop of the same source image).
-- `src/assets/photos/workshop-circle.jpg` — evening courtyard storytelling circle, used in the About section.
-- `src/assets/photos/picnic-fabrics.jpg` — outdoor creative-materials moment, used in the Journal section.
+### Üzleti szabályok
 
-No AI-generated portraits, no stock photography, per the brief.
+- **Mesés workshop** = pontosan 1 alkalom; **meseműhely** = legalább 2 alkalom, a jelentkezés a teljes folyamatra szól (egy rekord, nem alkalmanként).
+- **Személyes kísérés** = egyéni időpontfoglalás a Johanna által meghirdetett szabad időpontokból.
+- Státuszok: `pending` (Visszaigazolásra vár) · `confirmed` (Visszaigazolva) · `cancelled` (Lemondva) · `rejected` (Elutasítva). **Helyet csak a pending és a confirmed foglal.**
+- Jelentkezés csak közzétett, nyitott, nem betelt programra, az első alkalom kezdete előtt. Workshopon egy jelentkezés max. 3 fő, meseműhelyen 1 fő.
+- Jelentkezőkkel rendelkező program nem törölhető (→ „Elmarad” állapot), a férőhely nem csökkenthető a lefoglalt helyek alá, a típus nem változtatható. Időpontváltozásnál és elmaradásnál az admin figyelmeztetést kap az érintett jelentkezők számával.
+- Foglalással rendelkező időpont nem törölhető, csak lezárható.
+- A látogató a visszaigazoló levélben egyedi lemondási linket kap (`#/lemondas/<token>`, a token csak hash-ként tárolva), amellyel kizárólag a saját foglalását mondhatja le.
 
-## Visual direction (see VISUAL_DIRECTION.md)
+## Tesztek és ellenőrzések (2026-09-25)
 
-Palette and typography were grounded directly in Johanna's own existing Instagram graphics (confirmed by inspecting her saved posts before designing), not invented from scratch — this is why the concept should already feel "on brand" to her rather than generic.
+- `npm test`: **18/18 sikeres** — jogosultság (401 minden admin végponton, hamis token), nyilvános API személyes adat nélkül, egyéni foglalás + párhuzamos foglalás ugyanarra az időpontra (201/409), ismételt beküldés, lezárt/múltbeli/nem létező időpont, lemondás → felszabadulás, ütköző visszaállítás, DB-szintű egyediség, csoportos jelentkezés + párhuzamos utolsó hely, duplikált e-mail, visszavonás → kapacitás, meseműhely egy rekorddal, zárt/elmarad/múltbeli/piszkozat, érdeklődési típusok, e-mail-hiba melletti sikeres mentés újrapróbálással, vendég lemondási link izolációja, tartalom + képfeltöltés (típus, 5 MB-os korlát, hamisított tartalom), óraátállítás, belépési rate limit.
+- `npm run build`: sikeres. `npm audit --omit=dev`: 0 sebezhetőség (nodemailer 6 → 10 frissítés után).
+- Böngészős (Playwright, production build az Express mögött, elkülönített `data/e2e` adatokkal, levélfogóval): admin belépés/hibás jelszó, időpontok meghirdetése, workshop + meseműhely létrehozása képpel, validáció, piszkozat; látogatói foglalás (kliensoldali hibák, siker, a foglalt időpont eltűnik), érdeklődés (előválasztott téma, hibák, megőrzött adatok), programlista, jelentkezés dupla kattintással (1 rekord), admin visszaigazolás (frissítés után is megmarad), vendég lemondás, érvénytelen token, tartalom- és nyitóképcsere megjelenése a nyilvános oldalon, hibás fájltípus, munkamenet nélküli átirányítás, főoldali menü horgonyai (asztali + mobil), hálózati és 500-as hiba az űrlapon (hibaüzenet, adatok megmaradnak, nincs sikerüzenet).
+- Reszponzív: 360/390/768/1440 px — főoldal, programlista, programrészlet, foglalás, érdeklődés és mind a 8 adminképernyő: nincs vízszintes kilógás, nincs konzolhiba.
+- Levelek: a levélfogóban ellenőrizve (címzett, tárgy, program, dátum, állapot, ékezetek, lemondási/admin hivatkozás). **A valódi SMTP-kézbesítés nincs tesztelve** — nincs beállított SMTP-hozzáférés.
 
-## Known-fixed issues this session
+## Javított fontosabb hibák (2026-09-25)
 
-- Mobile fullscreen nav menu was rendering transparently (content bled through) because `backdrop-blur` on the `<header>` created a CSS containing block that broke the menu's `position: fixed`. Fixed by moving the blur to an inner wrapper.
-- The botanical branch motif (root/branch SVG used in "Miben segíthet a mese" and the contact CTA) was only partially drawing — roughly half of each icon's paths never animated in. Root cause: many sibling `motion` elements each running their own independent `whileInView` observer was unreliable. Fixed by switching to a single parent `whileInView` + Framer Motion `variants`, which is also the more standard pattern — applied to both `BranchMotif` and `ThreadDivider`.
-- Desktop hero (1024–1440px) read as "slipped"/unbalanced after several earlier attempts to fix it with spacing tweaks. Measured the actual computed layout instead of guessing: (1) `lg:pt-44` left a 104px dead gap under the 72px-tall fixed header, and the padding scale *grew* at wider breakpoints instead of staying roughly constant; (2) `lg:ml-auto` on the portrait never actually right-aligned it, because the still-active `mx-auto` also sets `margin-right: auto` and nothing cancelled it — the portrait sat centered in its column with 64px of dead space on both sides instead of flush right; (3) the text column's `max-w-xl` (576px) didn't fill its own 605px-wide grid track. Net effect: a 124px gap between text and portrait instead of the intended ~32px. Fixed all three in `Hero.tsx` (tightened `pt`/`pb` scale, `lg:max-w-none` on the text column, `lg:mr-0 lg:ml-auto` + a larger `lg:max-w-[500px]` on the portrait) — gap is now 80px and both columns fill their tracks. Also found the desktop nav switches on at exactly `lg` (1024px) with no room to breathe (nav butts against the CTA button); moved the nav/hamburger breakpoint from `lg` to `xl` (1280px) in `Header.tsx` so 1024–1279px keeps the clean hamburger instead of a cramped inline row.
+1. A `/api/public-data` minden foglalást és jelentkezést kiadott névvel, e-maillel, telefonnal → csak nem személyes adatok.
+2. Nem volt adatbázis; programok/időpontok kódba égetve; az admin nem tudta kezelni őket → SQLite + teljes admin CRUD.
+3. A foglalási oldal nem választott időpontot (mindig „rugalmas”, mai dátum) → valódi időpontválasztó, szerveroldali újraellenőrzéssel.
+4. Eseményeknél a lemondott jelentkezés is foglalta a helyet; nem volt duplikáció- és párhuzamossági védelem → egységes szabály + DB-triggerek.
+5. CORS bármely originnek engedélyezett hitelesített kéréseket; a tartalommentés tetszőleges kulcsot elfogadott → engedélyezőlista, mezőszintű validáció, JSON-only állapotmódosítás.
+6. A főoldali tartalom a kódból jött, az admin mentése nem jelent meg → a nyilvános oldal az adatbázis tartalmát mutatja.
+7. `HashRouter` mellett a `#mese`, `#rolam` stb. menüpontok és a hero „Érdeklődöm” gombja (nem létező `#erdeklodes`) a főoldal tetejére dobtak → görgetés.
+8. `.env` nem volt gitignore-ban; a jelszó-hash-t tartalmazó JSON adatfájl be volt commitolva → kivéve a követésből.
+9. A nyitókép 1,2 MB volt → 125 KB (1600 px, vizuálisan ellenőrizve DPR2-n).
+10. Admin mobilnézet 390 px-en 681 px-re szélesedett → javítva.
 
-## Explicitly not done (concept-scope only, per the brief)
+## Hátralévő feladatok / élesítést akadályozó tényezők
 
-No real backend, auth, payments, or CMS — content is static JSX, matching "only a látványterv" scope. Several content spots are marked `TODO` in both the UI (visible italic notes) and code comments where the brief said to flag missing client-confirmed information: the step-by-step process, testimonials, phone number, privacy policy/impresszum, and the four "egyeztetés alatt" occasion cards.
+1. **Hosting (blokkoló):** a jelenlegi GitHub Pages workflow csak statikus fájlokat tesz ki — ott nincs backend, így élesben minden űrlap „Nem sikerült kapcsolódni a szerverhez” hibát ad (sikerüzenet nem jelenik meg tévesen). Node.js-t futtató tárhely kell (VPS / Railway / Render stb., tartós lemezzel az SQLite-nak és a `data/uploads`-nak), `NODE_ENV=production`, `npm run build && npm start`, HTTPS reverse proxy (`TRUST_PROXY=1`). A döntés az ügyfélé/fejlesztőé — nincs élesítve, nincs push.
+2. **SMTP:** `SMTP_HOST/PORT/USER/PASS`, `FROM_EMAIL`, `MAIL_TRANSPORT=smtp` beállítása, SPF/DKIM a küldő domainre, majd tesztlevél egy tesztpostafiókba.
+3. **Adatkezelési tájékoztató és impresszum:** az űrlapok személyes adatot gyűjtenek, élesítés előtt kötelező. A tartalom az ügyféltől kell (a korábbi dőlt betűs helykitöltő feliratokat eltávolítottam, kitalált szöveget nem tettem be). Telefonszám szintén nincs megadva (adminból pótolható).
+4. **Admin jelszó:** a korábbi jelszó-hash a git-előzményekben szerepel → élesítés előtt új, erős jelszó és új `JWT_SECRET`.
+5. **Eredeti ügyfélszöveg:** a projektben nem található az eredeti ügyfélanyag, így a szövegeket nem lehetett vele összevetni; a kért szakaszok és idézetek (Boldizsár Ildikó névvel, három aranyalma) megvannak. Árak nem jelennek meg.
+6. A `data/` alatti régi érdeklődések korábbi tesztadatok (`example.hu`) — Johanna az adminban megválaszoltnak jelölheti őket.
+7. Nem kötelező: az `@supabase/supabase-js` függőség nincs használatban.

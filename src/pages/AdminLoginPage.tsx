@@ -1,78 +1,55 @@
-import { FormEvent, useState } from "react";
-import { LockKeyhole, ShieldCheck } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { type FormEvent, useState } from "react";
+import { LockKeyhole } from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
+import { Alert, SubmitButton, TextField } from "../components/ui/forms";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const { isAdmin, loginAdmin } = useAppContext();
+  const { isAdmin, loginAdmin, sessionExpired } = useAppContext();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
 
-  if (isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
+  if (isAdmin) return <Navigate to="/admin/attekintes" replace />;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const ok = await loginAdmin(username, password);
-    if (!ok) {
-      setError("Hibás felhasználónév vagy jelszó.");
+    if (sending) return;
+    if (!username.trim() || !password) {
+      setError("Add meg a felhasználónevet és a jelszót.");
       return;
     }
-
-    navigate("/admin/dashboard", { replace: true });
+    setSending(true);
+    setError("");
+    const res = await loginAdmin(username.trim(), password);
+    setSending(false);
+    if (!res.ok) {
+      setError(res.message || "A bejelentkezés nem sikerült.");
+      return;
+    }
+    navigate("/admin/attekintes", { replace: true });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper px-5 py-16 text-ink">
-      <div className="w-full max-w-xl rounded-[32px] border border-forest/10 bg-white/60 p-8 shadow-[0_30px_80px_rgba(32,58,50,0.08)]">
-        <div className="flex items-center justify-center rounded-full bg-forest p-3 text-paper w-14 h-14 mx-auto">
-          <ShieldCheck className="h-7 w-7" />
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4 py-12 text-ink">
+      <div className="w-full max-w-md rounded-[28px] border border-forest/10 bg-white/70 p-6 shadow-sm sm:p-8">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-forest text-paper">
+          <LockKeyhole className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h1 className="mt-6 text-center font-serif text-4xl text-forest">Admin felület</h1>
-        <p className="mt-3 text-center text-sm text-ink/70">
-          Az admin belépés a szerveroldali hitelesítő rendszerhez kötődik; a jelszó nem kerül a frontend kódba.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <div>
-            <label htmlFor="username" className="mb-2 block text-sm font-semibold text-ink/80">Felhasználónév</label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="w-full rounded-2xl border border-forest/15 bg-paper px-4 py-3 text-base text-ink outline-none transition focus:border-forest/40 focus:ring-2 focus:ring-forest/10"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="mb-2 block text-sm font-semibold text-ink/80">Jelszó</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-2xl border border-forest/15 bg-paper px-4 py-3 text-base text-ink outline-none transition focus:border-forest/40 focus:ring-2 focus:ring-forest/10"
-            />
-          </div>
-
-          {error ? (
-            <p className="rounded-2xl border border-terracotta/20 bg-terracotta/5 px-4 py-3 text-sm text-terracotta">{error}</p>
-          ) : null}
-
-          <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-full bg-forest px-6 py-3.5 font-sans font-semibold text-paper transition hover:bg-forest/90">
-            <LockKeyhole className="h-4 w-4" />
-            Belépés az admin felületre
-          </button>
+        <h1 className="mt-5 text-center font-serif text-3xl text-forest">Admin belépés</h1>
+        <p className="mt-2 text-center text-sm text-ink/65">Mesegombolyag foglalások, programok és tartalom kezelése</p>
+        <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-4">
+          {sessionExpired && <Alert tone="info">A munkamenet lejárt, kérlek, jelentkezz be újra.</Alert>}
+          <TextField label="Felhasználónév vagy e-mail" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
+          <TextField label="Jelszó" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
+          {error && <Alert tone="error">{error}</Alert>}
+          <SubmitButton sending={sending} sendingLabel="Belépés…">Belépés</SubmitButton>
         </form>
-
-        <div className="mt-6 rounded-2xl border border-forest/10 bg-forest/5 px-4 py-3 text-sm text-ink/80">
-          A hozzáférési adatok a szerver konfigurációjában vannak tárolva; a frontend ezt nem mutatja meg.
-        </div>
+        <p className="mt-6 text-center text-sm">
+          <Link to="/" className="focus-ring text-ink/60 underline hover:text-terracotta">Vissza a weboldalra</Link>
+        </p>
       </div>
     </div>
   );

@@ -1,62 +1,24 @@
 # Mesegombolyag
 
-Ez a projekt a Mesegombolyag meglévő látványtervére épülő, production-ready webes rendszer alapja. A cél, hogy a meglévő premium design és brand hangulat megmaradjon, miközben a látogató képes legyen:
+Tóth Johanna meseterapeuta weboldala egyéni időpontfoglalással, csoportos programokra (mesés workshop, meseműhely) való jelentkezéssel, érdeklődési űrlappal és adminfelülettel.
 
-- egyéni időpontot foglalni,
-- csoportos programra jelentkezni,
-- eseményre regisztrálni,
-- admin felületen kezelni a foglalásokat és eseményeket.
+## Indítás
 
-## Fejlesztői indulás
-
-1. `npm install`
-2. Másold a `.env.example` tartalmát `.env` fájlba.
-3. A Vite környezethez a következő változók szükségesek:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_ADMIN_EMAIL`
-   - `VITE_ADMIN_PASSWORD`
-4. `npm run dev`
-
-## Build
+Szükséges: Node.js 22.13 vagy újabb (a beépített `node:sqlite` miatt).
 
 ```bash
-npm run build
+npm install
+cp .env.example .env   # töltsd ki (titkos értékek, ne kerüljön git-be)
+npm run dev            # fejlesztés: http://localhost:4173/mesegombolyag/ (API: :3001)
+npm test               # szerveroldali tesztek
+npm run build          # production build
+npm start              # production: API + frontend egy folyamatban, http://localhost:3001/mesegombolyag/
 ```
 
-## Admin hozzáférés
+Admin: `/#/admin`. Az első admin felhasználó az `ADMIN_USERNAME` és `ADMIN_PASSWORD` változókból jön létre.
 
-A demo admin bejelentkezés alapértelmezett értékei:
+A beállítások leírása a `.env.example` fájlban, a részletes projektállapot, az üzleti szabályok és a hátralévő feladatok a `.claude/daekon/PROJECT.md` fájlban találhatók.
 
-- e-mail: `admin@mesegombolyag.hu`
-- jelszó: `mesegombolyag-demo`
+## Élesítés
 
-A production környezetben ezt Supabase Auth + RLS policy alapján kell lecserélni valódi admin felhasználókra.
-
-## Supabase architektúra javaslat
-
-A rendszer így épül fel:
-
-- `profiles` — admin és felhasználói profilok
-- `services` — egyéni szolgáltatások, időtartam, ár
-- `availability` — admin által definiált szabad időpontok
-- `individual_bookings` — egyéni foglalások
-- `groups` — csoportos programok
-- `group_registrations` — csoportos jelentkezések
-- `events` — események
-- `event_registrations` — eseményjelentkezések
-- `site_content` — oldaltartalom szerkesztése
-
-## Későbbi production lépések
-
-- Supabase Auth és Row Level Security beállítása
-- Resend / transactional email konfiguráció
-- Vercel deployment és env változók bekötése
-- admin felület bővítése tényleges CRUD műveletekkel
-- valódi adatbázis migrációk és schema fájlok hozzáadása
-
-## Admin használati útmutató
-
-- A főoldalról a navban az Admin gombra kattintva nyílik meg a belépő.
-- A demo bejelentkezés után az admin dashboard mutatja a közelgő foglalásokat, csoportokat és eseményeket.
-- A demo rendszer helyi, frontend szintű state alapján működik, így a biztonságos production implementációhoz szükséges a Supabase + RLS beüzemelése.
+A rendszernek Node.js-t futtató szerver kell, tartós tárolóval (`data/`). A statikus tárhely (pl. GitHub Pages) önmagában nem elég, mert ott nem fut a backend.
