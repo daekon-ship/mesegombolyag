@@ -21,7 +21,7 @@ import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AdminOverviewPage } from "./pages/admin/AdminOverviewPage";
 import { AdminBookingsPage } from "./pages/admin/AdminBookingsPage";
 import { AdminProgramEditPage, AdminProgramsPage } from "./pages/admin/AdminProgramsPage";
-import { AdminContentPage, AdminEmailsPage, AdminInquiriesPage } from "./pages/admin/AdminMiscPages";
+import { AdminAccountPage, AdminContentPage, AdminEmailsPage, AdminInquiriesPage } from "./pages/admin/AdminMiscPages";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { LegalPage } from "./pages/LegalPage";
 import { PreviewBanner } from "./components/PreviewBanner";
@@ -76,6 +76,7 @@ export default function App() {
             <Route path="erdeklodesek" element={<AdminInquiriesPage />} />
             <Route path="tartalom" element={<AdminContentPage />} />
             <Route path="levelek" element={<AdminEmailsPage />} />
+            <Route path="fiok" element={<AdminAccountPage />} />
             <Route path="dashboard" element={<Navigate to="/admin/attekintes" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

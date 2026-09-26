@@ -451,3 +451,24 @@ test("belépési próbálkozások korlátozása", async () => {
     await t.close();
   }
 });
+
+test("jelszócsere az adminból: régi jelszó kell, a többi munkamenet érvénytelen lesz", async () => {
+  const t = await startTestServer();
+  try {
+    const other = await t.login();
+    const mine = await t.login();
+    const body = (current, next) => ({ currentPassword: current, newPassword: next });
+    assert.equal((await t.request("POST", "/api/admin/password", body("rossz", "uj-jelszo-2026-osz"), { cookie: mine })).status, 400);
+    assert.equal((await t.request("POST", "/api/admin/password", body("teszt-jelszo-123", "rovid"), { cookie: mine })).status, 400);
+    assert.equal((await t.request("POST", "/api/admin/password", body("teszt-jelszo-123", "uj-jelszo-2026-osz"))).status, 401);
+    const ok = await t.request("POST", "/api/admin/password", body("teszt-jelszo-123", "uj-jelszo-2026-osz"), { cookie: mine });
+    assert.equal(ok.status, 200);
+    const fresh = ok.headers.get("set-cookie").split(";")[0];
+    assert.equal((await t.request("GET", "/api/admin/data", undefined, { cookie: fresh })).status, 200, "a jelenlegi böngésző új munkamenetet kap");
+    assert.equal((await t.request("GET", "/api/admin/data", undefined, { cookie: other })).status, 401, "más eszköz kijelentkezik");
+    assert.equal((await t.request("POST", "/api/admin/login", { username: "tesztadmin", password: "teszt-jelszo-123" })).status, 401);
+    assert.equal((await t.request("POST", "/api/admin/login", { username: "tesztadmin", password: "uj-jelszo-2026-osz" })).status, 200);
+  } finally {
+    await t.close();
+  }
+});

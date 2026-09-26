@@ -52,9 +52,12 @@ Hibás küldés nem akadályozza a foglalást; a levél az **Admin → Levélnap
 ## 5. Első belépés
 
 1. A telepítés után nyisd meg: `https://<domain>/#/admin`.
-2. Felhasználónév: az `ADMIN_USERNAME` (alapból `mesegombolyag`), jelszó: az `ADMIN_PASSWORD`.
-3. Sikeres belépés után **töröld az `ADMIN_PASSWORD` változót** (a jelszó az adatbázisban hash-ként marad).
-4. Jelszócsere később: `railway ssh` → `npm run admin:password` (a beírt jelszó nem látszik, és minden korábbi munkamenet érvénytelen lesz). Csak kijelentkeztetés: `npm run admin:password -- --revoke-only`. A `JWT_SECRET` cseréje is minden munkamenetet érvénytelenít.
+2. Felhasználónév: az `ADMIN_USERNAME` (alapból `mesegombolyag`). Az első jelszó a Railway-en látható: **Service → Variables → `ADMIN_PASSWORD`** (a szem ikonnal).
+3. Belépés után: **Admin → Fiók → Jelszó módosítása** — adj meg egy saját, legalább 12 karakteres jelszót. A csere minden más eszközt kijelentkeztet.
+4. Ezután **töröld az `ADMIN_PASSWORD` változót** a Railway-en (a jelszó már csak hash-ként van az adatbázisban; a változó létező admin mellett amúgy sem írja felül).
+5. Elfelejtett jelszó: `railway ssh` → `npm run admin:password` (a beírt jelszó nem látszik, minden munkamenet érvénytelen lesz). Csak kijelentkeztetés: `npm run admin:password -- --revoke-only`. A `JWT_SECRET` cseréje is minden munkamenetet érvénytelenít.
+
+**Automatikus telepítés:** a `railway` ágra történő push a jelenlegi projektben **nem** indít automatikusan új telepítést (2026-09-26-án tapasztalva). Új verzióhoz: Railway → a szolgáltatás → **Deployments → Deploy latest commit** (vagy a forrás újracsatolása). Ha automatikus telepítést szeretnél: Service → Settings → Source → a GitHub-kapcsolat ellenőrzése (a Railway GitHub-alkalmazásnak hozzáférés kell a repóhoz).
 
 ## 6. Telepítés utáni ellenőrzés
 

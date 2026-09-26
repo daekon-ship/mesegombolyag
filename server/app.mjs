@@ -783,6 +783,24 @@ export function createApp(options) {
     res.json({ ok: true, data: { loggedOut: true } });
   });
 
+  // Jelszócsere az adminból: a jelenlegi jelszó kell hozzá; minden korábbi munkamenet érvénytelen lesz,
+  // a mostani böngésző új munkamenetet kap.
+  app.post("/api/admin/password", rateLimit("login", 10, 15 * 60_000), requireAdmin, (req, res) => {
+    const current = String(req.body?.currentPassword ?? "");
+    const next = String(req.body?.newPassword ?? "");
+    const user = db.prepare("SELECT * FROM admin_users WHERE id = ?").get(req.admin.sub);
+    if (!user || !bcrypt.compareSync(current, user.password_hash)) {
+      throw new HttpError(400, "A jelenlegi jelszó nem megfelelő.", { errors: { currentPassword: "A jelenlegi jelszó nem megfelelő." } });
+    }
+    if (next.length < 12) throw new HttpError(400, "Az új jelszó legalább 12 karakter legyen.", { errors: { newPassword: "Legalább 12 karakter." } });
+    if (next === current) throw new HttpError(400, "Az új jelszó nem egyezhet a régivel.", { errors: { newPassword: "Nem egyezhet a régivel." } });
+    db.prepare("UPDATE admin_users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?").run(bcrypt.hashSync(next, 12), user.id);
+    const fresh = db.prepare("SELECT * FROM admin_users WHERE id = ?").get(user.id);
+    const token = jwt.sign({ sub: fresh.id, username: fresh.username, ver: fresh.token_version }, config.jwtSecret, { algorithm: "HS256", expiresIn: `${config.sessionHours}h` });
+    res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: config.secureCookies, maxAge: config.sessionHours * 3600_000, path: "/" });
+    res.json({ ok: true, message: "A jelszó megváltozott. Minden más eszközön újra be kell jelentkezni." });
+  });
+
   // --- admin: adatok ------------------------------------------------------------------------------------
 
   app.get("/api/admin/data", requireAdmin, (_req, res) => {

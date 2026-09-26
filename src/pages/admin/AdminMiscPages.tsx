@@ -184,3 +184,45 @@ export function AdminEmailsPage() {
     </div>
   );
 }
+
+export function AdminAccountPage() {
+  const { notify } = useAdmin();
+  const [form, setForm] = useState({ current: "", next: "", again: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    const local: Record<string, string> = {};
+    if (!form.current) local.currentPassword = "Add meg a jelenlegi jelszót.";
+    if (form.next.length < 12) local.newPassword = "Legalább 12 karakter.";
+    else if (form.next !== form.again) local.again = "A két új jelszó nem egyezik.";
+    setErrors(local);
+    if (Object.keys(local).length) return;
+    setBusy(true);
+    const res = await api.changePassword(form.current, form.next);
+    setBusy(false);
+    if (res.ok) {
+      notify("success", res.message || "A jelszó megváltozott.");
+      setForm({ current: "", next: "", again: "" });
+    } else {
+      setErrors(res.errors ?? {});
+      notify("error", res.message || "A jelszócsere nem sikerült.");
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="font-serif text-3xl text-forest sm:text-4xl">Fiók</h1>
+      <AdminCard title="Jelszó módosítása">
+        <form onSubmit={submit} noValidate className="max-w-md space-y-4">
+          <TextField label="Jelenlegi jelszó" type="password" autoComplete="current-password" value={form.current} onChange={(e) => setForm({ ...form, current: e.target.value })} error={errors.currentPassword} />
+          <TextField label="Új jelszó" type="password" autoComplete="new-password" hint="Legalább 12 karakter. Csere után minden más eszközön újra be kell jelentkezni." value={form.next} onChange={(e) => setForm({ ...form, next: e.target.value })} error={errors.newPassword} />
+          <TextField label="Új jelszó újra" type="password" autoComplete="new-password" value={form.again} onChange={(e) => setForm({ ...form, again: e.target.value })} error={errors.again} />
+          <button type="submit" disabled={busy} className={primaryBtn}>{busy ? "Mentés…" : "Jelszó módosítása"}</button>
+        </form>
+      </AdminCard>
+    </div>
+  );
+}

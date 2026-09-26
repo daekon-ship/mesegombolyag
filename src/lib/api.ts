@@ -90,6 +90,8 @@ export const api = {
   setInquiryStatus: (id: string, status: "new" | "handled") => apiRequest(`/admin/inquiries/${id}`, { method: "PATCH", json: { status } }),
   saveSiteContent: (content: Partial<SiteContent>) => apiRequest<{ siteContent: SiteContent }>("/admin/site-content", { method: "PUT", json: content }),
   retryEmail: (id: number) => apiRequest(`/admin/emails/${id}/retry`, { method: "POST" }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiRequest("/admin/password", { method: "POST", json: { currentPassword, newPassword } }),
   uploadImage: (file: File) =>
     apiRequest<{ url: string }>("/admin/uploads", { method: "POST", body: file, headers: { "Content-Type": file.type || "application/octet-stream" } }),
 };

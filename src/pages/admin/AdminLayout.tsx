@@ -24,6 +24,7 @@ const NAV = [
   { to: "/admin/erdeklodesek", label: "Érdeklődések" },
   { to: "/admin/tartalom", label: "Oldaltartalom" },
   { to: "/admin/levelek", label: "Levélnapló" },
+  { to: "/admin/fiok", label: "Fiók" },
 ];
 
 export function AdminLayout() {

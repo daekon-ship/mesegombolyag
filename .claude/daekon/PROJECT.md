@@ -2,13 +2,16 @@
 
 **Ügyfél:** Tóth Johanna, meseterapeuta és mentálhigiénés szakember (Szeged)
 **Stack:** Vite + React 18 + TypeScript + Tailwind v4 (frontend) · Node.js 24 + Express + beépített SQLite (`node:sqlite`) + Resend HTTPS API / Nodemailer (backend)
-**Utolsó frissítés:** 2026-09-26 — Railway-telepítés előkészítése.
+**Utolsó frissítés:** 2026-09-26 — tesztelőnézet telepítve Railway-re.
 
 ## Telepítési állapot
 
-- **Előkészítve, NEM telepítve.** A Railway-fiók csatlakoztatva van (1 személyes munkaterület, 0 projekt); a csomag típusa nem ismert. Lépések: `DEPLOY_RAILWAY.md`.
-- Nyilvános címen jelenleg semmi nem fut ebből a verzióból. A régi GitHub Pages workflow (`.github/workflows/deploy.yml`) még létezik; backend nélküli statikus változatot tenne ki, ezért push előtt érdemes kikapcsolni.
-- Semmi nincs pusholva; a munka helyi commitokban van.
+- **Tesztelőnézet: TELEPÍTVE és kipróbálva** — https://mesegombolyag-production.up.railway.app/ (admin: `/#/admin`). Nem éles: `PREVIEW_MODE=1` (minden oldalon „Tesztelőnézet” sáv), `MAIL_TRANSPORT=disabled` (e-mail nem megy ki, a felület nem is ígér e-mailt; a lemondási link a sikeroldalon jelenik meg).
+- Railway: projekt `mesegombolyag-elonezet`, szolgáltatás `mesegombolyag`, kötet `mesegombolyag-data` → `/data`, régió sfo, 1 replika. Fiók: **Hobby** csomag (havi 5 USD beépített keret; kötet max. 0,5 GB; Railway-kötetmentés nem elérhető — csak az alkalmazásszintű `npm run backup`).
+- Forrás: GitHub `daekon-ship/mesegombolyag`, **`railway` ág**. A `main` ág (és a GitHub Pages látványterv: https://daekon-ship.github.io/mesegombolyag/) változatlan; a `main` helyi példánya 3 commit előrébb jár, nincs pusholva.
+- A push a `railway` ágra **nem indít automatikus telepítést** — új verzióhoz a forrást újra kell csatolni / „Deploy latest commit”.
+- Változók a Railway-en (értékek csak ott): `JWT_SECRET` (véletlen, 64 hexa), `ADMIN_USERNAME`, `ADMIN_PASSWORD` (első belépéshez; belépés + jelszócsere után törlendő), `ADMIN_EMAIL`, `MAIL_TRANSPORT=disabled`, `PREVIEW_MODE=1`, `PUBLIC_SITE_URL`.
+- Tesztadatok az előnézetben (mind „TESZT” jelöléssel): 2 időpont (okt. 8.), egy workshop és egy 3 alkalmas meseműhely, 1 foglalás, 1 jelentkezés, 1 érdeklődés.
 
 ## Futtatás
 
@@ -49,6 +52,15 @@ Admin: `…/#/admin`. Az első admin az `ADMIN_USERNAME` / `ADMIN_PASSWORD` vál
 - Vendég lemondási link (`#/lemondas/<token>`, a token hash-ként tárolva) kizárólag a saját foglalást kezeli.
 
 ## Tesztek és ellenőrzések
+
+**2026-09-26 — a telepített tesztelőnézeten (https://mesegombolyag-production.up.railway.app)**
+- Health: `{"status":"ok"}`; `/` a weboldal; ismeretlen `/api/*` → JSON 404; régi `/mesegombolyag/` → 301; admin API bejelentkezés nélkül 401. Futási napló: adatmappa `/data`, első admin létrejött, levélküldés `disabled`.
+- Admin (asztali): belépés (Secure süti), 2 időpont meghirdetése, workshop képfeltöltéssel, 3 alkalmas meseműhely közzététele.
+- Látogató (390 px, mobil emuláció): tesztelőnézet-sáv, egyéni foglalás, meseműhely-jelentkezés, érdeklődés — egyik sem ígér e-mailt; a lemondási link megjelenik és a saját foglalást mutatja; nincs kilógás, konzolhiba vagy 4xx/5xx kérés.
+- Admin (390 px): tartalomszerkesztés + nyitókép-feltöltés → a nyilvános oldalon megjelent.
+- **Tartósság újratelepítés után** (új konténer, 3103e0a): foglalás, jelentkezés, érdeklődés, 2 program, 2 időpont, szerkesztett alcím, feltöltött nyitókép és programkép mind megmaradt (képek HTTP 200). A tesztszerkesztést utána visszaállítottam.
+- Javítva a telepített változat alapján: a tesztelőnézet-sáv felül jelent meg (most alul tapad), információs ikon, jelentkezésnél „jelentkezésedet”, kikapcsolt levélküldésnél nyugodt tájékoztatás a „sikertelen levelek” riasztás helyett, admin jelszócsere (Fiók oldal).
+- Semgrep: a munkamenet elején jelzett „1 finding” a korábbi CORS-szabály (`javascript.express.security.cors-misconfiguration`, `server/app.mjs`) volt, akkor javítva (engedélyezőlistából visszaadott érték). A Guardian-szkennert a jelenlegi összes szerver- és kulcsfontosságú frontendfájlra lefuttatva: 0 találat; pozitív kontroll (szándékosan hibás mintafájl) jelzett, tehát a szkenner működött. Függőségek külön: `npm audit --omit=dev` → 0 sebezhetőség.
 
 **2026-09-26 — Railway-előkészítés**
 - A korábbi „exit code 127” értesítések oka igazolva: a háttérben indított tesztszervert a tesztek után én állítottam le `Stop-Process`-szel, és Git Bash alatt Windowson ez 127-es kilépési kódot ad (reprodukálva: a szerver hibátlanul válaszolt a health-végponton, a kód csak a kényszerleállítás után jelent meg). A `node:test` tesztek nem külső szervert használnak: minden teszt saját, folyamaton belüli példányt indít véletlen porton, ideiglenes adatbázissal; a folyamatszintű tesztek üres környezettel és nem létező `.env`-vel indulnak, így a fejlesztői `.env` sem szivároghat be. A 4173-as portot egy másik projekt (`kiosz`) `vite preview` folyamata foglalja — a tesztek sosem használták. Kockázat volt viszont, hogy az `npm run dev` csendben másik portra lép, miközben a levelek a 4173-ra mutatnak → a Vite most foglalt portnál leáll.
