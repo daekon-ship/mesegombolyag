@@ -31,7 +31,7 @@ export function ManagePage() {
     setConfirming(false);
     if (res.ok && res.data) {
       setView((v) => (v ? { ...v, ...res.data } : v));
-      setMessage({ tone: "success", text: "A lemondást rögzítettük, erről e-mailt is küldünk." });
+      setMessage({ tone: "success", text: res.data.emailNotifications ? "A lemondást rögzítettük, erről e-mailt is küldünk." : "A lemondást rögzítettük." });
     } else setMessage({ tone: "error", text: res.message || "A lemondás nem sikerült." });
   }
 

@@ -1,11 +1,11 @@
 # Mesegombolyag telepítése Railway-re
 
-Állapot: **előkészítve, még nincs telepítve.** A konfiguráció helyben, production módban tesztelve (lásd `.claude/daekon/PROJECT.md`).
+Állapot: lásd `.claude/daekon/PROJECT.md` → „Telepítési állapot”. A Railway-változat a **`railway` ágon** van; a `main` ág továbbra is a GitHub Pages-es látványtervet adja.
 
 ## 1. Projekt és szolgáltatás
 
-1. railway.com → **New Project → Deploy from GitHub repo** → `daekon-ship/mesegombolyag` (ág: `main`).
-   - Előtte a helyi commitokat pusholni kell (`git push`). A push a régi GitHub Pages workflow-t is elindítja — ez a statikus változat backend nélkül; érdemes a `.github/workflows/deploy.yml`-t kikapcsolni vagy törölni, ha a Railway lesz az éles hely.
+1. railway.com → **New Project → Deploy from GitHub repo** → `daekon-ship/mesegombolyag` (ág: **`railway`**).
+   - A GitHub Pages workflow csak `main`-re fut, ezért a `railway` ág pusholása nem írja felül a megosztott látványtervet. Ha a Railway lesz az éles hely, a `railway` ág beolvasztható a `main`-be — előtte a Pages workflow-t ki kell kapcsolni.
 2. Egyetlen szolgáltatás kell (webes felület + API együtt). **Replika: 1** — kötettel a Railway nem enged több replikát, és az SQLite-hoz ez így helyes.
 3. A build- és indítási beállításokat a repóban lévő `railway.json` adja:
    - build: Railpack, `npm run build` (típusellenőrzés + Vite build; a Node-verziót a `package.json` `engines` mezője rögzíti: 24.x)
@@ -20,7 +20,7 @@
 - Az alkalmazás a `RAILWAY_VOLUME_MOUNT_PATH` alatt tárol mindent: `mesegombolyag.db` (SQLite), `uploads/` (admin képfeltöltések), `backups/` (mentések).
 - A kötet csak futásidőben csatolódik (buildkor nem), az adatbázis-inicializálás és a migrációk induláskor futnak, és meglévő adatot nem írnak felül.
 - Production módban **kötet nélkül a szerver nem indul el** (szándékosan: különben újratelepítéskor minden adat elveszne).
-- Méretkorlát: Free/Trial 0,5 GB, Hobby 5 GB, Pro 50 GB. Újratelepítéskor rövid (néhány másodperces) leállás van, mert egyszerre csak egy példány csatolhatja a kötetet.
+- Méretkorlát: a fiók tényleges keretében (Hobby, 2026-09-26-án lekérdezve) **0,5 GB kötetenként**; a Railway dokumentációja Hobby csomagra 5 GB-ot ír, de a fiókra érvényes limit 0,5 GB. Újratelepítéskor rövid (néhány másodperces) leállás van, mert egyszerre csak egy példány csatolhatja a kötetet.
 
 ## 3. Környezeti változók (Service → Variables)
 
@@ -34,6 +34,7 @@
 | `RESEND_API_KEY` | resendnél | a Resend API-kulcs (csak küldési jogosultsággal) |
 | `MAIL_FROM` | resendnél | `Mesegombolyag <ertesites@HITELESITETT-DOMAIN>` |
 | `PUBLIC_SITE_URL` | saját domainnél | `https://…` — railway.app domainnél elhagyható (a `RAILWAY_PUBLIC_DOMAIN`-ből képződik) |
+| `PREVIEW_MODE` | tesztelőnézetben | `1` → minden oldalon „Tesztelőnézet — még nem éles” sáv; élesítéskor töröld |
 
 A `PORT`, `RAILWAY_VOLUME_MOUNT_PATH` és `RAILWAY_PUBLIC_DOMAIN` változót a Railway maga adja. Hiányzó vagy gyenge kötelező érték esetén a szerver induláskor egyértelmű hibalistával leáll (Deploy Logs).
 
@@ -66,8 +67,8 @@ Hibás küldés nem akadályozza a foglalást; a levél az **Admin → Levélnap
 
 ## 7. Mentés és visszaállítás
 
-- **Railway beépített mentés** (ajánlott, a teljes kötetet menti): Service → Volume → **Backups** — kézi mentés, vagy ütemezett (napi/heti). Visszaállítás ugyanott.
+- **Railway beépített kötetmentés:** a jelenlegi (Hobby) keretben **nem elérhető** (a fiók limitje: 0 mentés). Pro csomagon: Service → Volume → Backups.
 - **Alkalmazásszintű mentés** (adatbázis + feltöltött képek a kötetre):
   - `railway ssh` → `npm run backup` → a mentés a `/data/backups/mentes-<időbélyeg>/` mappába kerül (futó szerver mellett is konzisztens, `VACUUM INTO`). Lista: `npm run backup -- --list`.
   - Visszaállítás: `npm run restore -- mentes-<időbélyeg>` → majd a szolgáltatás **Restart**-ja. A visszaállítás induláskor, az adatbázis megnyitása előtt fut; a felülírt adatok a `/data/pre-restore-<időbélyeg>/` mappába kerülnek.
-  - A kötetre írt mentés a kötettel együtt veszhet el — fontos időpontok előtt a Railway Backups funkciót is használd.
+  - A kötetre írt mentés a kötettel együtt veszhet el. Éles indulás előtt ki kell alakítani a kötetről a saját gépre (vagy tárolóba) történő letöltést — ez a lépés **még nincs kipróbálva**, ezért itt nem adunk meg parancsot.

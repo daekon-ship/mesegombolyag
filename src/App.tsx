@@ -24,6 +24,7 @@ import { AdminProgramEditPage, AdminProgramsPage } from "./pages/admin/AdminProg
 import { AdminContentPage, AdminEmailsPage, AdminInquiriesPage } from "./pages/admin/AdminMiscPages";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { LegalPage } from "./pages/LegalPage";
+import { PreviewBanner } from "./components/PreviewBanner";
 
 /**
  * A főoldal vizuális ritmusa:
@@ -56,6 +57,7 @@ export default function App() {
     <AppProvider>
       <HashRouter>
         <ScrollToTop />
+        <PreviewBanner />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/erdeklodes" element={<InquiryPage />} />

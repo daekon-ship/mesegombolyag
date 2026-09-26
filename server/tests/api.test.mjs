@@ -102,6 +102,12 @@ test("egyéni foglalás: siker, admin látja, e-mailek, dupla foglalás és pár
     const winner = a.status === 201 ? a : b;
     assert.equal(winner.body.data.booking.status, "pending");
     assert.match(winner.body.message, /Visszaigazolásra vár/);
+    // levélfogó módban nincs valódi kézbesítés: nem ígérünk e-mailt, a lemondási link a válaszban jön
+    assert.equal(winner.body.data.emailNotifications, false);
+    assert.doesNotMatch(winner.body.message, /e-mail/i);
+    assert.match(winner.body.data.manageUrl, /#\/lemondas\/[A-Za-z0-9_-]{20,}$/);
+    const flags = (await t.request("GET", "/api/public-data")).body.data.site;
+    assert.deepEqual(flags, { previewMode: false, emailNotifications: false });
 
     // ismételt beküldés ugyanazzal a kulccsal: nincs új foglalás
     const again = await t.request("POST", "/api/bookings", { slotId: slot.id, ...person(1), idempotencyKey: a.status === 201 ? "kulcs-aaaa-1" : "kulcs-bbbb-2" });

@@ -65,6 +65,8 @@ export function loadConfig(env, { root }) {
       adminNotifyEmail: env.ADMIN_NOTIFY_EMAIL || env.ADMIN_EMAIL || "",
       rateLimit: env.DISABLE_RATE_LIMIT !== "1",
       processOutboxOnStart: true,
+      // Tesztelőnézet: a felület jelzi, hogy nem éles jelentkezési oldal.
+      previewMode: env.PREVIEW_MODE === "1",
       mail: {
         transport,
         captureDir: path.join(dataDir, "mail-capture"),

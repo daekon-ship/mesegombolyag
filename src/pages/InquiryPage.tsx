@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { Send } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
-import { api } from "../lib/api";
+import { api, type FollowUp } from "../lib/api";
 import { formatDate } from "../lib/format";
 import {
   Alert,
@@ -53,7 +53,7 @@ export function InquiryPage() {
 
   const [form, setForm] = useState({ name: "", email: "", phone: "", kind: initialKind, message: "", website: "" });
   useEffect(() => setForm((f) => ({ ...f, kind: initialKind })), [initialKind]);
-  const { sending, error, fieldErrors, result, submit } = useSubmission<{ inquiry: { id: string } }>();
+  const { sending, error, fieldErrors, result, submit } = useSubmission<{ inquiry: { id: string } } & FollowUp>();
   const set = (field: keyof typeof form) => (value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -91,7 +91,7 @@ export function InquiryPage() {
           <div className="mt-8 space-y-4">
             <Alert tone="success">
               <p className="font-semibold">{result.message}</p>
-              <p className="mt-1 text-sm">A megadott e-mail-címre visszaigazoló levelet küldünk.</p>
+              {result.data?.emailNotifications && <p className="mt-1 text-sm">A megadott e-mail-címre visszaigazoló levelet küldünk.</p>}
             </Alert>
             <p className="text-sm text-ink/70">
               <Link to="/" className="focus-ring underline hover:text-terracotta">Vissza a főoldalra</Link> ·{" "}

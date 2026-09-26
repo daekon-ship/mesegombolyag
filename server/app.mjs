@@ -277,6 +277,8 @@ export function createApp(options) {
     return outboxRun;
   }
 
+  // Csak valódi kézbesítésnél ígérünk e-mailt a látogatónak (levélfogó/kikapcsolt módban nem).
+  const emailNotifications = mailer.mode === "resend" || mailer.mode === "smtp";
   const adminUrl = () => `${config.publicSiteUrl}/#/admin`;
   const manageUrl = (token) => `${config.publicSiteUrl}/#/lemondas/${token}`;
   const notifyAdmin = () => config.adminNotifyEmail || getSiteContent().contactEmail;
@@ -448,7 +450,10 @@ export function createApp(options) {
       .filter((p) => !p.isPast && p.sessions.length)
       .sort((a, b) => a.sessions[0].startsAt.localeCompare(b.sessions[0].startsAt))
       .map(publicProgram);
-    res.json({ ok: true, data: { siteContent: getSiteContent(), slots: availableSlots(), programs } });
+    res.json({
+      ok: true,
+      data: { siteContent: getSiteContent(), slots: availableSlots(), programs, site: { previewMode: Boolean(config.previewMode), emailNotifications } },
+    });
   });
 
   function publicProgram(p) {
@@ -518,14 +523,18 @@ export function createApp(options) {
       return { ...row, starts_at: slot.starts_at, duration_min: slot.duration_min };
     });
     processOutbox();
-    res.status(201).json(bookingResponse(booking, false));
+    res.status(201).json(bookingResponse(booking, false, token));
   });
 
-  function bookingResponse(b, duplicate) {
+  /** Levélküldés nélkül a lemondási link csak így juthat el a látogatóhoz — kizárólag a beküldőnek adjuk vissza. */
+  const followUp = (token) => ({ emailNotifications, ...(!emailNotifications && token ? { manageUrl: manageUrl(token) } : {}) });
+  const pendingSuffix = () => (emailNotifications ? "hamarosan e-mailben jelentkezünk." : "Johanna hamarosan felveszi veled a kapcsolatot.");
+
+  function bookingResponse(b, duplicate, token) {
     return {
       ok: true,
-      message: "Foglalásodat rögzítettük. Visszaigazolásra vár — hamarosan e-mailben jelentkezünk.",
-      data: { booking: { id: b.id, status: b.status, statusLabel: STATUS_LABELS[b.status], startsAt: b.starts_at, durationMin: b.duration_min }, duplicate },
+      message: `Foglalásodat rögzítettük. Visszaigazolásra vár — ${pendingSuffix()}`,
+      data: { booking: { id: b.id, status: b.status, statusLabel: STATUS_LABELS[b.status], startsAt: b.starts_at, durationMin: b.duration_min }, duplicate, ...followUp(token) },
     };
   }
 
@@ -606,14 +615,14 @@ export function createApp(options) {
       return { registration: row, program: programRow };
     });
     processOutbox();
-    res.status(201).json(registrationResponse(registration, program, false));
+    res.status(201).json(registrationResponse(registration, program, false, token));
   });
 
-  function registrationResponse(reg, program, duplicate) {
+  function registrationResponse(reg, program, duplicate, token) {
     return {
       ok: true,
-      message: "Jelentkezésedet rögzítettük. Visszaigazolásra vár — hamarosan e-mailben jelentkezünk.",
-      data: { registration: { id: reg.id, status: reg.status, statusLabel: STATUS_LABELS[reg.status], seats: reg.seats, programId: program.id, programTitle: program.title }, duplicate },
+      message: `Jelentkezésedet rögzítettük. Visszaigazolásra vár — ${pendingSuffix()}`,
+      data: { registration: { id: reg.id, status: reg.status, statusLabel: STATUS_LABELS[reg.status], seats: reg.seats, programId: program.id, programTitle: program.title }, duplicate, ...followUp(token) },
     };
   }
 
@@ -622,7 +631,7 @@ export function createApp(options) {
     const body = req.body || {};
     if (clean(body.website)) return res.json({ ok: true, message: "Köszönjük!" });
     const idempotencyKey = readIdempotencyKey(body);
-    const okResponse = (id) => ({ ok: true, message: "Köszönjük! Üzenetedet megkaptuk, Johanna hamarosan válaszol.", data: { inquiry: { id } } });
+    const okResponse = (id) => ({ ok: true, message: "Köszönjük! Üzenetedet megkaptuk, Johanna hamarosan válaszol.", data: { inquiry: { id }, emailNotifications } });
     if (idempotencyKey) {
       const existing = db.prepare("SELECT id FROM inquiries WHERE idempotency_key = ?").get(idempotencyKey);
       if (existing) return res.json(okResponse(existing.id));
@@ -747,7 +756,7 @@ export function createApp(options) {
       }
     });
     processOutbox();
-    res.json({ ok: true, message: "A lemondást rögzítettük.", data: manageView(findByToken(req.params.token)) });
+    res.json({ ok: true, message: "A lemondást rögzítettük.", data: { ...manageView(findByToken(req.params.token)), emailNotifications } });
   });
 
   // --- admin: bejelentkezés -----------------------------------------------------------------------

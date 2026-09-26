@@ -55,22 +55,25 @@ async function apiRequest<T>(path: string, options: RequestInit & { json?: unkno
   return { ok: true, status: response.status, data: payload.data, message: payload.message };
 }
 
-export type PublicData = { siteContent: SiteContent; slots: Slot[]; programs: Program[] };
+export type SiteFlags = { previewMode: boolean; emailNotifications: boolean };
+/** Beküldés utáni tájékoztatás: levélküldés nélkül a lemondási link közvetlenül jön vissza. */
+export type FollowUp = { emailNotifications?: boolean; manageUrl?: string };
+export type PublicData = { siteContent: SiteContent; slots: Slot[]; programs: Program[]; site?: SiteFlags };
 
 export const api = {
   publicData: () => apiRequest<PublicData>("/public-data"),
   program: (slug: string) => apiRequest<{ program: Program }>(`/programs/${encodeURIComponent(slug)}`),
   createBooking: (body: Record<string, unknown>) =>
-    apiRequest<{ booking: { id: string; status: string; statusLabel: string; startsAt: string; durationMin: number } }>("/bookings", { method: "POST", json: body }),
+    apiRequest<{ booking: { id: string; status: string; statusLabel: string; startsAt: string; durationMin: number } } & FollowUp>("/bookings", { method: "POST", json: body }),
   createRegistration: (body: Record<string, unknown>) =>
-    apiRequest<{ registration: { id: string; status: string; statusLabel: string; seats: number; programTitle: string } }>("/registrations", { method: "POST", json: body }),
-  createInquiry: (body: Record<string, unknown>) => apiRequest<{ inquiry: { id: string } }>("/inquiries", { method: "POST", json: body }),
+    apiRequest<{ registration: { id: string; status: string; statusLabel: string; seats: number; programTitle: string } } & FollowUp>("/registrations", { method: "POST", json: body }),
+  createInquiry: (body: Record<string, unknown>) => apiRequest<{ inquiry: { id: string } } & FollowUp>("/inquiries", { method: "POST", json: body }),
   manageView: (token: string) =>
     apiRequest<{ type: string; title: string; name: string; status: string; statusLabel: string; when: string; seats?: number; canCancel: boolean }>(
       `/manage/${encodeURIComponent(token)}`,
     ),
   manageCancel: (token: string) =>
-    apiRequest<{ status: string; statusLabel: string; canCancel: boolean }>(`/manage/${encodeURIComponent(token)}/cancel`, { method: "POST" }),
+    apiRequest<{ status: string; statusLabel: string; canCancel: boolean } & FollowUp>(`/manage/${encodeURIComponent(token)}/cancel`, { method: "POST" }),
 
   login: (username: string, password: string) => apiRequest<{ user: { username: string } }>("/admin/login", { method: "POST", json: { username, password } }),
   session: () => apiRequest<{ loggedIn: boolean; user?: { username: string } }>("/admin/session"),

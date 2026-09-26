@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, setUnauthenticatedHandler } from "../lib/api";
+import { api, setUnauthenticatedHandler, type SiteFlags } from "../lib/api";
 import { defaultSiteContent } from "../lib/siteData";
 import type { Program, SiteContent, Slot } from "../lib/types";
 
@@ -9,6 +9,8 @@ type AppStateValue = {
   siteContent: SiteContent;
   slots: Slot[];
   programs: Program[];
+  /** Tesztelőnézet és levélküldés állapota (a szervertől). */
+  site: SiteFlags;
   publicState: LoadState;
   refreshPublic: () => Promise<void>;
   /** null = még ellenőrizzük */
@@ -26,6 +28,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [publicState, setPublicState] = useState<LoadState>("loading");
+  const [site, setSite] = useState<SiteFlags>({ previewMode: false, emailNotifications: false });
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -35,6 +38,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSiteContent({ ...defaultSiteContent, ...res.data.siteContent });
       setSlots(res.data.slots);
       setPrograms(res.data.programs);
+      if (res.data.site) setSite(res.data.site);
       setPublicState("ready");
     } else {
       setPublicState("error");
@@ -68,8 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AppStateValue>(
-    () => ({ siteContent, slots, programs, publicState, refreshPublic, isAdmin, sessionExpired, loginAdmin, logoutAdmin, setSiteContent }),
-    [siteContent, slots, programs, publicState, refreshPublic, isAdmin, sessionExpired, loginAdmin, logoutAdmin],
+    () => ({ siteContent, slots, programs, site, publicState, refreshPublic, isAdmin, sessionExpired, loginAdmin, logoutAdmin, setSiteContent }),
+    [siteContent, slots, programs, site, publicState, refreshPublic, isAdmin, sessionExpired, loginAdmin, logoutAdmin],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

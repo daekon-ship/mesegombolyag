@@ -59,6 +59,9 @@ test("Resend: látogatói visszaigazolás és Johanna értesítése helyes fejl�
     const slot = (await t.req("POST", "/api/admin/slots", { date: "2026-10-10", time: "10:00" }, t.cookie)).body.data.slots[0];
     const b = await t.req("POST", "/api/bookings", { slotId: slot.id, name: "Árvíz Tűrő", email: "latogato@example.hu", phone: "+36 30 123 4567", idempotencyKey: "resend-foglalas-1" });
     assert.equal(b.status, 201);
+    assert.equal(b.body.data.emailNotifications, true);
+    assert.equal(b.body.data.manageUrl, undefined, "valódi levélküldésnél a link csak levélben megy");
+    assert.match(b.body.message, /e-mailben/);
     await t.flushEmails();
     assert.equal(resend.calls.length, 2);
     for (const c of resend.calls) {

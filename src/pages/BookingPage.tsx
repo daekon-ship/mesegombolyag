@@ -2,7 +2,8 @@ import { type FormEvent, useMemo, useState } from "react";
 import { CalendarCheck2, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
-import { api } from "../lib/api";
+import { ManageLink } from "../components/ManageLink";
+import { api, type FollowUp } from "../lib/api";
 import { budapestParts, formatDate, formatDateTime, formatTime } from "../lib/format";
 import {
   Alert,
@@ -19,7 +20,7 @@ import {
   validateContactFields,
 } from "../components/ui/forms";
 
-type BookingResult = { booking: { id: string; status: string; statusLabel: string; startsAt: string; durationMin: number } };
+type BookingResult = { booking: { id: string; status: string; statusLabel: string; startsAt: string; durationMin: number } } & FollowUp;
 
 /**
  * Személyes kísérés mesékkel — egyéni időpontfoglalás a Johanna által meghirdetett szabad időpontokból.
@@ -69,9 +70,11 @@ export function BookingPage() {
                 {formatDateTime(b.startsAt)} · {b.durationMin} perc
               </p>
               <p className="mt-2 text-sm">
-                Johanna hamarosan visszaigazolja az időpontot. A részleteket és a lemondási lehetőséget e-mailben is elküldjük.
+                Johanna hamarosan visszaigazolja az időpontot.
+                {result.data.emailNotifications ? " A részleteket és a lemondási lehetőséget e-mailben is elküldjük." : ""}
               </p>
             </Alert>
+            <ManageLink url={result.data.manageUrl} />
             <p className="text-sm text-ink/70">
               <Link to="/" className="focus-ring underline hover:text-terracotta">Vissza a főoldalra</Link>
             </p>
@@ -87,7 +90,7 @@ export function BookingPage() {
         <p className={eyebrowClass}>Személyes kísérés mesékkel</p>
         <h1 className={pageTitleClass}>Egyéni időpontfoglalás</h1>
         <p className="mt-4 max-w-[58ch] font-sans text-[15.5px] leading-relaxed text-ink/75">
-          Válassz a meghirdetett szabad időpontok közül. A foglalás Johanna visszaigazolásával válik véglegessé — erről e-mailt kapsz.
+          Válassz a meghirdetett szabad időpontok közül. A foglalás Johanna visszaigazolásával válik véglegessé.
         </p>
 
         {publicState === "loading" && <p className="mt-8 text-ink/60" role="status">Szabad időpontok betöltése…</p>}

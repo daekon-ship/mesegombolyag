@@ -2,7 +2,8 @@ import { type FormEvent, useEffect, useState } from "react";
 import { CalendarDays, MapPin, Send, Users } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useAppContext } from "../context/AppState";
-import { api, mediaUrl } from "../lib/api";
+import { ManageLink } from "../components/ManageLink";
+import { api, mediaUrl, type FollowUp } from "../lib/api";
 import { formatSessionRange } from "../lib/format";
 import type { Program } from "../lib/types";
 import {
@@ -20,7 +21,7 @@ import {
 } from "../components/ui/forms";
 import { StateBadge, TypeBadge, seatsText } from "../components/ProgramBits";
 
-type RegResult = { registration: { id: string; status: string; statusLabel: string; seats: number; programTitle: string } };
+type RegResult = { registration: { id: string; status: string; statusLabel: string; seats: number; programTitle: string } } & FollowUp;
 
 const CLOSED_TEXT: Record<string, string> = {
   full: "Ez a program betelt. Érdeklődj a következő alkalomról — Johanna szól, ha felszabadul hely vagy új csoport indul.",
@@ -139,7 +140,8 @@ export function EventDetailPage() {
                     Állapot: {result.data.registration.statusLabel} · {result.data.registration.seats} fő
                   </p>
                 </Alert>
-                <p className="text-sm text-ink/65">A részleteket és a lemondási lehetőséget e-mailben is elküldtük.</p>
+                {result.data.emailNotifications && <p className="text-sm text-ink/65">A részleteket és a lemondási lehetőséget e-mailben is elküldtük.</p>}
+                <ManageLink url={result.data.manageUrl} />
               </div>
             ) : isOpen ? (
               <form onSubmit={handleSubmit} noValidate className="relative mt-5 space-y-4">
