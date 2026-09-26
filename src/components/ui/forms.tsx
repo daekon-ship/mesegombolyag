@@ -1,5 +1,5 @@
 import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useId, useRef, useState } from "react";
-import { CheckCircle2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Info, TriangleAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { newIdempotencyKey, type ApiResult } from "../../lib/api";
 
@@ -79,7 +79,7 @@ export function Alert({ tone, children }: { tone: "error" | "success" | "info"; 
     success: "border-emerald-700/20 bg-emerald-50 text-emerald-900",
     info: "border-forest/15 bg-sage/30 text-forest",
   }[tone];
-  const Icon = tone === "success" ? CheckCircle2 : TriangleAlert;
+  const Icon = tone === "success" ? CheckCircle2 : tone === "info" ? Info : TriangleAlert;
   return (
     <div role={tone === "error" ? "alert" : "status"} className={`flex items-start gap-3 rounded-2xl border p-4 text-[15px] leading-relaxed ${styles}`}>
       <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />

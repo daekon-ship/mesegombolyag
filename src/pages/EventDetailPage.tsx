@@ -141,7 +141,7 @@ export function EventDetailPage() {
                   </p>
                 </Alert>
                 {result.data.emailNotifications && <p className="text-sm text-ink/65">A részleteket és a lemondási lehetőséget e-mailben is elküldtük.</p>}
-                <ManageLink url={result.data.manageUrl} />
+                <ManageLink url={result.data.manageUrl} kind="registration" />
               </div>
             ) : isOpen ? (
               <form onSubmit={handleSubmit} noValidate className="relative mt-5 space-y-4">

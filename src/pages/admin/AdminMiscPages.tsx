@@ -140,9 +140,9 @@ export function AdminEmailsPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-serif text-3xl text-forest sm:text-4xl">Levélnapló</h1>
-      <Alert tone={data.mailMode === "smtp" ? "info" : "error"}>
-        {data.mailMode === "smtp"
-          ? "A levélküldés élesítve van (SMTP). Az „Elküldve” állapot azt jelenti, hogy a levelezőszolgáltató átvette a levelet; a kézbesítést a szolgáltató végzi."
+      <Alert tone={data.mailMode === "smtp" || data.mailMode === "resend" ? "info" : "error"}>
+        {data.mailMode === "smtp" || data.mailMode === "resend"
+          ? `A levélküldés élesítve van (${data.mailMode === "resend" ? "Resend" : "SMTP"}). Az „Elküldve” állapot azt jelenti, hogy a levélküldő szolgáltató átvette a levelet; a kézbesítést a szolgáltató végzi.`
           : `A levélküldés nincs élesítve (mód: ${data.mailMode}). A foglalások és jelentkezések ettől függetlenül mentődnek, de értesítő levél nem megy ki.`}
       </Alert>
       {data.emails.length === 0 ? (

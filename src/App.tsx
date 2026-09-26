@@ -57,7 +57,6 @@ export default function App() {
     <AppProvider>
       <HashRouter>
         <ScrollToTop />
-        <PreviewBanner />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/erdeklodes" element={<InquiryPage />} />
@@ -81,6 +80,8 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        {/* a tartalom után, hogy az oldal alján tapadjon, és ne takarja a rögzített fejléc */}
+        <PreviewBanner />
       </HashRouter>
     </AppProvider>
   );

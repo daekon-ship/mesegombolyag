@@ -10,6 +10,7 @@ export function AdminOverviewPage() {
   const pendingRegs = data.registrations.filter((r) => r.status === "pending");
   const newInquiries = data.inquiries.filter((i) => i.status === "new");
   const failedEmails = data.emails.filter((e) => e.status === "failed");
+  const mailLive = data.mailMode === "resend" || data.mailMode === "smtp";
   const upcomingBookings = data.bookings
     .filter((b) => b.startsAt > now && (b.status === "pending" || b.status === "confirmed"))
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
@@ -27,13 +28,17 @@ export function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-serif text-3xl text-forest sm:text-4xl">Áttekintés</h1>
-      {failedEmails.length > 0 && (
+      {failedEmails.length > 0 && (mailLive ? (
         <div role="alert" className="rounded-2xl border border-rose-700/20 bg-rose-50 p-4 text-[15px] text-rose-900">
           {failedEmails.length} levél kiküldése nem sikerült.{" "}
           <Link to="/admin/levelek" className="focus-ring font-semibold underline">Levélnapló megnyitása</Link>
-          {data.mailMode !== "smtp" && <span className="block pt-1 text-sm">A levélküldés jelenleg nincs élesítve (mód: {data.mailMode}).</span>}
         </div>
-      )}
+      ) : (
+        <div role="status" className="rounded-2xl border border-forest/15 bg-sage/30 p-4 text-[15px] text-forest">
+          A levélküldés jelenleg ki van kapcsolva, ezért {failedEmails.length} értesítő levél nem ment ki. A foglalások és jelentkezések ettől függetlenül mentődnek; a levelek a levélküldés beállítása után a{" "}
+          <Link to="/admin/levelek" className="focus-ring font-semibold underline">Levélnaplóból</Link> újraküldhetők.
+        </div>
+      ))}
       {(!data.siteContent.privacyPolicy || !data.siteContent.impressum) && (
         <div role="alert" className="rounded-2xl border border-ochre/40 bg-ochre/10 p-4 text-[15px] text-[#5e4516]">
           Hiányzik: {[!data.siteContent.privacyPolicy && "adatkezelési tájékoztató", !data.siteContent.impressum && "impresszum"].filter(Boolean).join(" és ")}.
