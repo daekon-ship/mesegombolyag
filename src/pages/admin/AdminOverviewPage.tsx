@@ -34,6 +34,13 @@ export function AdminOverviewPage() {
           {data.mailMode !== "smtp" && <span className="block pt-1 text-sm">A levélküldés jelenleg nincs élesítve (mód: {data.mailMode}).</span>}
         </div>
       )}
+      {(!data.siteContent.privacyPolicy || !data.siteContent.impressum) && (
+        <div role="alert" className="rounded-2xl border border-ochre/40 bg-ochre/10 p-4 text-[15px] text-[#5e4516]">
+          Hiányzik: {[!data.siteContent.privacyPolicy && "adatkezelési tájékoztató", !data.siteContent.impressum && "impresszum"].filter(Boolean).join(" és ")}.
+          Az űrlapok személyes adatot gyűjtenek, ezért élesítés előtt töltsd ki.{" "}
+          <Link to="/admin/tartalom" className="focus-ring font-semibold underline">Oldaltartalom szerkesztése</Link>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s) => (
           <Link key={s.label} to={s.to} className="focus-ring rounded-[20px] border border-forest/10 bg-white/70 p-4 transition hover:border-forest/25 sm:p-5">

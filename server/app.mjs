@@ -42,6 +42,9 @@ export const DEFAULT_SITE_CONTENT = {
   contactEmail: "mesegombolyag@gmail.com",
   contactPhone: "",
   location: "Szeged",
+  // Jogi oldalak: a szöveget Johanna (és jogi szakember) adja meg az adminban; üresen az oldal ezt jelzi.
+  privacyPolicy: "",
+  impressum: "",
 };
 const SITE_CONTENT_LIMITS = {
   heroTitle: 120,
@@ -53,6 +56,8 @@ const SITE_CONTENT_LIMITS = {
   contactEmail: 254,
   contactPhone: 40,
   location: 120,
+  privacyPolicy: 30000,
+  impressum: 10000,
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -136,7 +141,7 @@ export function createApp(options) {
     corsOrigins: [],
     secureCookies: false,
     sessionHours: 8,
-    basePath: "/mesegombolyag",
+    basePath: "/",
     ...options,
   };
   if (!config.jwtSecret || config.jwtSecret.length < 16) throw new Error("JWT_SECRET legalább 16 karakter legyen.");
@@ -227,12 +232,26 @@ export function createApp(options) {
 
   // --- e-mail sor -------------------------------------------------------------
 
-  function queueEmail(relatedType, relatedId, to, rendered) {
+  /** Látogatónak szóló levél: a válaszcím Johanna kapcsolati címe. */
+  function queueEmail(relatedType, relatedId, to, rendered, replyTo = getSiteContent().contactEmail) {
     db.prepare(
-      `INSERT INTO email_outbox (related_type, related_id, recipient, subject, text_body, html_body, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
-    ).run(relatedType, relatedId, to, rendered.subject, rendered.text, rendered.html, nowIso(config.clock));
+      `INSERT INTO email_outbox (related_type, related_id, recipient, reply_to, subject, text_body, html_body, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+    ).run(relatedType, relatedId, to, replyTo || null, rendered.subject, rendered.text, rendered.html, nowIso(config.clock));
   }
+  /** Johannának szóló értesítés: a válaszcím a látogató címe, így közvetlenül válaszolhat. */
+  function queueAdminEmail(visitorEmail, relatedType, relatedId, rendered) {
+    queueEmail(relatedType, relatedId, notifyAdmin(), rendered, visitorEmail);
+  }
+
+  // Adatbázisonként egyedi azonosító: a szolgáltatói Idempotency-Key ne ütközzön két telepítés között.
+  const installId = (() => {
+    const row = db.prepare("SELECT value FROM site_content WHERE key = '__install_id'").get();
+    if (row) return row.value;
+    const id = crypto.randomUUID();
+    db.prepare("INSERT INTO site_content (key, value, updated_at) VALUES ('__install_id', ?, ?)").run(id, nowIso(config.clock));
+    return id;
+  })();
 
   let outboxRun = Promise.resolve();
   function processOutbox() {
@@ -240,8 +259,16 @@ export function createApp(options) {
       const pending = db.prepare("SELECT * FROM email_outbox WHERE status = 'pending' ORDER BY id").all();
       for (const row of pending) {
         try {
-          await mailer.deliver({ id: row.id, to: row.recipient, subject: row.subject, text: row.text_body, html: row.html_body });
-          db.prepare("UPDATE email_outbox SET status = 'sent', attempts = attempts + 1, last_error = NULL, sent_at = ? WHERE id = ?").run(nowIso(config.clock), row.id);
+          const result = await mailer.deliver({
+            id: row.id,
+            idempotencyKey: `mesegombolyag-${installId}-${row.id}`,
+            to: row.recipient,
+            replyTo: row.reply_to,
+            subject: row.subject,
+            text: row.text_body,
+            html: row.html_body,
+          });
+          db.prepare("UPDATE email_outbox SET status = 'sent', attempts = attempts + 1, last_error = NULL, provider_id = ?, sent_at = ? WHERE id = ?").run(result?.providerId ?? null, nowIso(config.clock), row.id);
         } catch (error) {
           db.prepare("UPDATE email_outbox SET status = 'failed', attempts = attempts + 1, last_error = ? WHERE id = ?").run(String(error?.message || error).slice(0, 500), row.id);
         }
@@ -346,14 +373,19 @@ export function createApp(options) {
   // --- autentikáció ------------------------------------------------------------------
 
   const COOKIE = "mesegombolyag_admin";
+  /** Érvényes aláírás és lejárat mellett a tokenverziónak is egyeznie kell (jelszócsere után a régi munkamenetek érvénytelenek). */
   function readAdmin(req) {
     const token = req.cookies?.[COOKIE];
     if (!token) return null;
+    let payload;
     try {
-      return jwt.verify(token, config.jwtSecret);
+      payload = jwt.verify(token, config.jwtSecret, { algorithms: ["HS256"] });
     } catch {
       return null;
     }
+    const user = db.prepare("SELECT id, username, token_version FROM admin_users WHERE id = ?").get(payload.sub);
+    if (!user || user.token_version !== payload.ver) return null;
+    return { sub: user.id, username: user.username };
   }
   function requireAdmin(req, _res, next) {
     const admin = readAdmin(req);
@@ -398,7 +430,15 @@ export function createApp(options) {
 
   // --- nyilvános végpontok ------------------------------------------------------------------
 
-  app.get("/api/health", (_req, res) => res.json({ ok: true, data: { status: "ok", mail: mailer.mode } }));
+  // Állapotellenőrzés (Railway healthcheck): csak annyit árul el, hogy a szerver és az adatbázis válaszol.
+  app.get("/api/health", (_req, res) => {
+    try {
+      db.prepare("SELECT 1").get();
+      res.json({ ok: true, data: { status: "ok" } });
+    } catch {
+      res.status(503).json({ ok: false, message: "Az adatbázis nem érhető el." });
+    }
+  });
 
   app.get("/api/public-data", (_req, res) => {
     const programs = db
@@ -467,7 +507,7 @@ export function createApp(options) {
         action: { label: "Foglalás megtekintése vagy lemondása", url: manageUrl(token) },
         footerNote: "Ezt a levelet azért kaptad, mert a Mesegombolyag weboldalán időpontot foglaltál. A fenti hivatkozás csak a te foglalásodhoz tartozik, ne add tovább.",
       }));
-      queueEmail("booking", row.id, notifyAdmin(), renderEmail({
+      queueAdminEmail(email, "booking", row.id, renderEmail({
         subject: `Új időpontfoglalás: ${formatBudapestDateTime(slot.starts_at)}`,
         greeting: "Szia Johanna!",
         signature: false,
@@ -555,7 +595,7 @@ export function createApp(options) {
         action: { label: "Jelentkezés megtekintése vagy lemondása", url: manageUrl(token) },
         footerNote: "A fenti hivatkozás csak a te jelentkezésedhez tartozik, ne add tovább.",
       }));
-      queueEmail("registration", row.id, notifyAdmin(), renderEmail({
+      queueAdminEmail(email, "registration", row.id, renderEmail({
         subject: `Új jelentkezés: ${programRow.title}`,
         greeting: "Szia Johanna!",
         signature: false,
@@ -607,7 +647,7 @@ export function createApp(options) {
         `INSERT INTO inquiries (id, kind, program_id, program_title, name, email, phone, message, status, idempotency_key, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?)`,
       ).run(id, program ? "program" : kind, program?.id ?? null, program?.title ?? null, name, email, phone || null, message, idempotencyKey, nowIso(config.clock));
-      queueEmail("inquiry", id, notifyAdmin(), renderEmail({
+      queueAdminEmail(email, "inquiry", id, renderEmail({
         subject: `Új érdeklődés: ${kindLabel}`,
         greeting: "Szia Johanna!",
         signature: false,
@@ -683,7 +723,7 @@ export function createApp(options) {
         const updated = { ...found.row, status: "cancelled" };
         const slot = { starts_at: found.row.starts_at, duration_min: found.row.duration_min };
         emailBookingStatus(updated, slot, { byGuest: true });
-        queueEmail("booking", found.row.id, notifyAdmin(), renderEmail({
+        queueAdminEmail(found.row.email, "booking", found.row.id, renderEmail({
           subject: `Lemondott időpont: ${formatBudapestDateTime(slot.starts_at)}`,
           greeting: "Szia Johanna!",
         signature: false,
@@ -696,7 +736,7 @@ export function createApp(options) {
         const updated = { ...found.row, status: "cancelled" };
         const program = getProgramRow(found.row.program_id);
         emailRegistrationStatus(updated, program, { byGuest: true });
-        queueEmail("registration", found.row.id, notifyAdmin(), renderEmail({
+        queueAdminEmail(found.row.email, "registration", found.row.id, renderEmail({
           subject: `Lemondott jelentkezés: ${program.title}`,
           greeting: "Szia Johanna!",
         signature: false,
@@ -719,7 +759,7 @@ export function createApp(options) {
     if (!user || !password || !bcrypt.compareSync(password, user.password_hash)) {
       throw new HttpError(401, "Hibás felhasználónév vagy jelszó.");
     }
-    const token = jwt.sign({ sub: user.id, username: user.username }, config.jwtSecret, { expiresIn: `${config.sessionHours}h` });
+    const token = jwt.sign({ sub: user.id, username: user.username, ver: user.token_version }, config.jwtSecret, { algorithm: "HS256", expiresIn: `${config.sessionHours}h` });
     res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: config.secureCookies, maxAge: config.sessionHours * 3600_000, path: "/" });
     res.json({ ok: true, data: { user: { username: user.username } } });
   });
@@ -1040,12 +1080,25 @@ export function createApp(options) {
 
   // --- statikus frontend (production) ------------------------------------------------------------------------
 
-  if (config.distDir && fs.existsSync(path.join(config.distDir, "index.html"))) {
-    app.use(config.basePath, express.static(config.distDir, { index: "index.html", maxAge: "1h" }));
-    app.get("/", (_req, res) => res.redirect(`${config.basePath}/`));
-  }
-
+  // Ismeretlen API-útvonal: JSON 404, sosem a weboldal HTML-je.
   app.use("/api", (_req, _res, next) => next(new HttpError(404, "Ismeretlen végpont.")));
+
+  if (config.distDir && fs.existsSync(path.join(config.distDir, "index.html"))) {
+    const base = config.basePath === "/" ? "" : config.basePath;
+    const indexFile = path.join(config.distDir, "index.html");
+    // A buildben relatív hivatkozások vannak (vite base: "./"), így bármely alapútvonal alatt működik.
+    app.use(base || "/", express.static(config.distDir, { index: false, maxAge: "1h", setHeaders: (res, file) => {
+      if (file.includes(`${path.sep}assets${path.sep}`)) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    } }));
+    const sendIndex = (_req, res) => {
+      res.setHeader("Cache-Control", "no-cache");
+      res.sendFile(indexFile);
+    };
+    app.get(base ? [`${base}`, `${base}/`] : "/", sendIndex);
+    if (base) app.get("/", (_req, res) => res.redirect(`${base}/`));
+    // Régi GitHub Pages-es hivatkozások (/mesegombolyag/…) átirányítása, ha a gyökérről szolgálunk ki.
+    if (!base) app.get(["/mesegombolyag", "/mesegombolyag/"], (_req, res) => res.redirect(301, "/"));
+  }
 
   // --- hibakezelés -------------------------------------------------------------------------------------------------
 
@@ -1060,10 +1113,12 @@ export function createApp(options) {
   });
 
   // Első indításkor admin felhasználó a környezeti változókból
+  let adminBootstrapped = false;
   if (config.bootstrapAdmin) {
     const count = db.prepare("SELECT COUNT(*) AS n FROM admin_users").get().n;
     const { username, email, password, passwordHash } = config.bootstrapAdmin;
-    if (!count && username && (password || passwordHash)) {
+    adminBootstrapped = !count && Boolean(username && (password || passwordHash));
+    if (adminBootstrapped) {
       db.prepare("INSERT INTO admin_users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)").run(
         username,
         email || null,
@@ -1073,5 +1128,8 @@ export function createApp(options) {
     }
   }
 
-  return { app, db, processOutbox, flushEmails: () => processOutbox(), mailer, budapestParts };
+  // Induláskor a korábban (pl. újraindítás miatt) függőben maradt levelek kiküldése.
+  if (config.processOutboxOnStart) processOutbox();
+
+  return { app, db, processOutbox, flushEmails: () => processOutbox(), mailer, budapestParts, adminBootstrapped };
 }

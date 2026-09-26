@@ -8,6 +8,8 @@ export type SiteContent = {
   contactEmail: string;
   contactPhone: string;
   location: string;
+  privacyPolicy: string;
+  impressum: string;
 };
 
 export type Slot = { id: string; startsAt: string; durationMin: number };

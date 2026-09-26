@@ -174,6 +174,16 @@ export function PageShell({ children, backTo = "/", backLabel = "Vissza a főold
   );
 }
 
+/** Az űrlapok alján: hivatkozás az adatkezelési tájékoztatóra. */
+export function PrivacyNote() {
+  return (
+    <p className="text-xs leading-relaxed text-ink/55">
+      Az adataidat kizárólag a kapcsolatfelvételhez és a jelentkezés kezeléséhez használjuk. Részletek az{" "}
+      <Link to="/adatkezeles" className="focus-ring underline hover:text-terracotta">adatkezelési tájékoztatóban</Link>.
+    </p>
+  );
+}
+
 export const cardClass = "rounded-[28px] border border-forest/10 bg-white/60 p-6 shadow-sm sm:p-9";
 export const eyebrowClass = "font-sans text-xs font-semibold uppercase tracking-[0.25em] text-terracotta";
 export const pageTitleClass = "mt-3 font-serif text-[1.85rem] leading-tight text-forest sm:text-[2.3rem]";

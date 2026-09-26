@@ -74,6 +74,8 @@ const CONTENT_FIELDS: { key: keyof SiteContent; label: string; rows?: number; ma
   { key: "contactEmail", label: "Kapcsolati e-mail-cím", max: 254 },
   { key: "contactPhone", label: "Telefonszám (üresen hagyva nem jelenik meg)", max: 40 },
   { key: "location", label: "Helyszín / város", max: 120 },
+  { key: "privacyPolicy", label: "Adatkezelési tájékoztató (teljes szöveg — jogilag ellenőrzött változatot illessz be)", rows: 14, max: 30000 },
+  { key: "impressum", label: "Impresszum (szolgáltató neve, székhely, nyilvántartási szám, adószám, elérhetőség, tárhelyszolgáltató)", rows: 8, max: 10000 },
 ];
 
 export function AdminContentPage() {

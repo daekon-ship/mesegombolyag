@@ -8,6 +8,7 @@ import {
   Alert,
   Honeypot,
   PageShell,
+  PrivacyNote,
   SelectField,
   SubmitButton,
   TextAreaField,
@@ -134,9 +135,7 @@ export function InquiryPage() {
               <Send className="h-4 w-4" aria-hidden="true" />
               Üzenet elküldése
             </SubmitButton>
-            <p className="text-xs leading-relaxed text-ink/55">
-              Az adataidat kizárólag a kapcsolatfelvételhez használjuk.
-            </p>
+            <PrivacyNote />
           </form>
         )}
       </section>

@@ -68,7 +68,11 @@ export function Footer() {
 
         <div className="flex flex-col gap-4 pt-6 font-sans text-xs text-paper/45 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Mesegombolyag — Tóth Johanna</p>
-          <Link to="/admin" className="focus-ring text-paper/35 hover:text-paper/70">Admin</Link>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link to="/adatkezeles" className="focus-ring hover:text-paper/80">Adatkezelési tájékoztató</Link>
+            <Link to="/impresszum" className="focus-ring hover:text-paper/80">Impresszum</Link>
+            <Link to="/admin" className="focus-ring text-paper/35 hover:text-paper/70">Admin</Link>
+          </div>
         </div>
       </div>
     </footer>

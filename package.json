@@ -8,9 +8,12 @@
     "dev:server": "node server/index.mjs",
     "dev:client": "vite --host 0.0.0.0 --port 4173",
     "build": "tsc --noEmit && vite build",
-    "start": "node server/index.mjs",
+    "start": "node server/index.mjs --production",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "test": "node --test --test-concurrency=1 \"server/tests/*.test.mjs\""
+    "test": "node --test --test-concurrency=1 \"server/tests/*.test.mjs\"",
+    "backup": "node server/scripts/backup.mjs",
+    "restore": "node server/scripts/restore.mjs",
+    "admin:password": "node server/scripts/admin-password.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
@@ -37,6 +40,6 @@
     "vite": "^5.4.11"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": "24.x"
   }
 }

@@ -8,6 +8,7 @@ import {
   Alert,
   Honeypot,
   PageShell,
+  PrivacyNote,
   SubmitButton,
   TextAreaField,
   TextField,
@@ -178,6 +179,7 @@ export function BookingPage() {
               <CalendarCheck2 className="h-4 w-4" aria-hidden="true" />
               Időpont foglalása
             </SubmitButton>
+            <PrivacyNote />
           </form>
         )}
       </section>

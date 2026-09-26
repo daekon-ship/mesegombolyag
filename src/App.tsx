@@ -23,6 +23,7 @@ import { AdminBookingsPage } from "./pages/admin/AdminBookingsPage";
 import { AdminProgramEditPage, AdminProgramsPage } from "./pages/admin/AdminProgramsPage";
 import { AdminContentPage, AdminEmailsPage, AdminInquiriesPage } from "./pages/admin/AdminMiscPages";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { LegalPage } from "./pages/LegalPage";
 
 /**
  * A főoldal vizuális ritmusa:
@@ -62,6 +63,8 @@ export default function App() {
           <Route path="/esemenyek" element={<EventsPage />} />
           <Route path="/esemenyek/:slug" element={<EventDetailPage />} />
           <Route path="/lemondas/:token" element={<ManagePage />} />
+          <Route path="/adatkezeles" element={<LegalPage kind="privacy" />} />
+          <Route path="/impresszum" element={<LegalPage kind="impressum" />} />
           <Route path="/admin" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="attekintes" element={<AdminOverviewPage />} />

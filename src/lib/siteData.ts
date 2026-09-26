@@ -16,4 +16,6 @@ export const defaultSiteContent: SiteContent = {
   contactEmail: "mesegombolyag@gmail.com",
   contactPhone: "",
   location: "Szeged",
+  privacyPolicy: "",
+  impressum: "",
 };

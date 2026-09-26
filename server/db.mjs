@@ -142,6 +142,12 @@ const MIGRATIONS = [
     sent_at TEXT
   );
   `,
+  // 2: munkamenetek érvénytelenítése jelszócserekor; válaszcím a levelekhez; szolgáltatói azonosító
+  `
+  ALTER TABLE admin_users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE email_outbox ADD COLUMN reply_to TEXT;
+  ALTER TABLE email_outbox ADD COLUMN provider_id TEXT;
+  `,
 ];
 
 export function openDatabase(dbPath) {

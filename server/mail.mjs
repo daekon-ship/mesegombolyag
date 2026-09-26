@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import nodemailer from "nodemailer";
+import { createResendTransport } from "./mail-resend.mjs";
 
 /**
  * E-mail-küldés kimenő soron (email_outbox) keresztül.
@@ -8,35 +9,52 @@ import nodemailer from "nodemailer";
  * ha a levél nem megy ki — a hiba a naplóban látszik, és az adminból újraküldhető.
  *
  * MAIL_TRANSPORT:
- *   smtp    — valódi küldés (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS kell hozzá)
- *   file    — levélfogó: a leveleket a data/mail-capture mappába írja (.html + .txt)
- *   fail    — minden küldés hibát ad (hibakezelés teszteléséhez)
+ *   resend   — HTTPS API (Railway Free/Trial/Hobby csomagon ez működik); RESEND_API_KEY kell
+ *   smtp     — SMTP (Railway-en csak Pro csomagtól); SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+ *   file     — levélfogó: a leveleket a DATA_DIR/mail-capture mappába írja (.html + .txt)
+ *   fail     — minden küldés hibát ad (hibakezelés teszteléséhez)
  *   disabled — nem küld, a levél „failed" állapotba kerül magyarázattal
- * Alapértelmezés: smtp, ha SMTP_HOST be van állítva, különben disabled.
+ * Alapértelmezés: resend, ha RESEND_API_KEY van; smtp, ha SMTP_HOST van; különben disabled.
  */
-export function createMailer({ transport, captureDir, from, smtp }) {
-  const mode = transport || (smtp.host ? "smtp" : "disabled");
+export function createMailer({ transport, captureDir, from, smtp = {}, resend = {} }) {
+  const mode = transport || (resend.apiKey ? "resend" : smtp.host ? "smtp" : "disabled");
   let smtpTransport = null;
+  const resendDeliver = mode === "resend" ? createResendTransport({ ...resend, from }) : null;
 
   async function deliver(message) {
     if (mode === "fail") throw new Error("Szimulált levélküldési hiba (MAIL_TRANSPORT=fail).");
-    if (mode === "disabled") throw new Error("A levélküldés nincs beállítva (hiányzó SMTP beállítások).");
+    if (mode === "disabled") throw new Error("A levélküldés nincs beállítva (hiányzó RESEND_API_KEY vagy SMTP beállítás).");
     if (mode === "file") {
       fs.mkdirSync(captureDir, { recursive: true });
       const base = path.join(captureDir, `${Date.now()}-${message.id}-${message.to.replace(/[^a-z0-9@.]/gi, "_")}`);
       fs.writeFileSync(`${base}.html`, message.html, "utf8");
-      fs.writeFileSync(`${base}.txt`, `To: ${message.to}\nFrom: ${from}\nSubject: ${message.subject}\n\n${message.text}`, "utf8");
-      return;
+      fs.writeFileSync(
+        `${base}.txt`,
+        `To: ${message.to}
+From: ${from}
+${message.replyTo ? `Reply-To: ${message.replyTo}
+` : ""}Idempotency-Key: ${message.idempotencyKey}
+Subject: ${message.subject}
+
+${message.text}`,
+        "utf8",
+      );
+      return { providerId: null };
     }
-    if (!smtpTransport) {
-      smtpTransport = nodemailer.createTransport({
-        host: smtp.host,
-        port: smtp.port,
-        secure: smtp.port === 465,
-        auth: smtp.user ? { user: smtp.user, pass: smtp.pass } : undefined,
-      });
+    if (mode === "resend") return resendDeliver(message);
+    if (mode === "smtp") {
+      if (!smtpTransport) {
+        smtpTransport = nodemailer.createTransport({
+          host: smtp.host,
+          port: smtp.port,
+          secure: smtp.port === 465,
+          auth: smtp.user ? { user: smtp.user, pass: smtp.pass } : undefined,
+        });
+      }
+      const info = await smtpTransport.sendMail({ from, to: message.to, replyTo: message.replyTo || undefined, subject: message.subject, text: message.text, html: message.html });
+      return { providerId: info?.messageId ?? null };
     }
-    await smtpTransport.sendMail({ from, to: message.to, subject: message.subject, text: message.text, html: message.html });
+    throw new Error(`Ismeretlen MAIL_TRANSPORT: ${mode}`);
   }
 
   return { mode, deliver };

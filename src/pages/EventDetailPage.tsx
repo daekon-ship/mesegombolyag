@@ -9,6 +9,7 @@ import {
   Alert,
   Honeypot,
   PageShell,
+  PrivacyNote,
   SelectField,
   SubmitButton,
   TextAreaField,
@@ -164,6 +165,7 @@ export function EventDetailPage() {
                   <Send className="h-4 w-4" aria-hidden="true" />
                   Jelentkezem
                 </SubmitButton>
+                <PrivacyNote />
               </form>
             ) : (
               <div className="mt-4 space-y-5">
